@@ -14,9 +14,15 @@ const mockUser: User = {
   company: { name: 'Romaguera-Crona', catchPhrase: '', bs: '' },
 };
 
+const defaultProps = {
+  user: mockUser,
+  onClose: () => {},
+  onDelete: () => {},
+};
+
 describe('UserModal', () => {
   it('exibe os detalhes do usuário', () => {
-    render(<UserModal user={mockUser} onClose={() => {}} />);
+    render(<UserModal {...defaultProps} />);
     expect(screen.getByText('Leanne Graham')).toBeInTheDocument();
     expect(screen.getByText('Sincere@april.biz')).toBeInTheDocument();
     expect(screen.getByText('1-770-736-8031')).toBeInTheDocument();
@@ -27,7 +33,7 @@ describe('UserModal', () => {
   it('chama onClose ao clicar no botão fechar', async () => {
     const user = userEvent.setup();
     const handleClose = vi.fn();
-    render(<UserModal user={mockUser} onClose={handleClose} />);
+    render(<UserModal {...defaultProps} onClose={handleClose} />);
 
     await user.click(screen.getByRole('button', { name: 'Fechar' }));
     expect(handleClose).toHaveBeenCalled();
@@ -36,7 +42,7 @@ describe('UserModal', () => {
   it('chama onClose ao pressionar Escape', async () => {
     const user = userEvent.setup();
     const handleClose = vi.fn();
-    render(<UserModal user={mockUser} onClose={handleClose} />);
+    render(<UserModal {...defaultProps} onClose={handleClose} />);
 
     await user.keyboard('{Escape}');
     expect(handleClose).toHaveBeenCalled();
@@ -45,9 +51,23 @@ describe('UserModal', () => {
   it('chama onClose ao clicar no overlay', async () => {
     const user = userEvent.setup();
     const handleClose = vi.fn();
-    const { container } = render(<UserModal user={mockUser} onClose={handleClose} />);
+    const { container } = render(<UserModal {...defaultProps} onClose={handleClose} />);
 
     await user.click(container.firstChild as Element);
     expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('não exibe botão de remover para usuários da API (canDelete ausente)', () => {
+    render(<UserModal {...defaultProps} />);
+    expect(screen.queryByRole('button', { name: /remover usuário/i })).not.toBeInTheDocument();
+  });
+
+  it('chama onDelete ao clicar em remover usuário (canDelete=true)', async () => {
+    const user = userEvent.setup();
+    const handleDelete = vi.fn();
+    render(<UserModal {...defaultProps} onDelete={handleDelete} canDelete />);
+
+    await user.click(screen.getByRole('button', { name: /remover usuário/i }));
+    expect(handleDelete).toHaveBeenCalledWith(mockUser.id);
   });
 });

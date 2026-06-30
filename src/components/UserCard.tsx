@@ -8,9 +8,9 @@ const slideIn = keyframes`
 `;
 
 const AVATAR_COLORS = [
-  '#6366f1', '#ec4899', '#f59e0b',
-  '#10b981', '#3b82f6', '#8b5cf6',
-  '#ef4444', '#14b8a6',
+  '#00FF87', '#00CFFF', '#FF00CC',
+  '#FFD700', '#FF4488', '#00E5FF',
+  '#ADFF2F', '#FF6EC7',
 ];
 
 function getDiceBearUrl(name: string) {
@@ -21,14 +21,15 @@ const Card = styled.button<{ $index: number }>`
   width: 100%;
   text-align: left;
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 10px;
-  border: 2.5px solid ${({ theme }) => theme.colors.border};
-  padding: 18px 20px;
+  border-radius: 6px;
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
+  padding: 0;
   box-shadow: ${({ theme }) => theme.colors.cardShadow};
   cursor: pointer;
-  transition: box-shadow 0.15s ease, transform 0.15s ease, background-color 0.3s;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, background-color 0.3s;
   animation: ${slideIn} 0.3s ease both;
   animation-delay: ${({ $index }) => $index * 45}ms;
+  overflow: hidden;
 
   &:hover {
     box-shadow: ${({ theme }) => theme.colors.cardShadowHover};
@@ -41,18 +42,44 @@ const Card = styled.button<{ $index: number }>`
   }
 `;
 
-const Row = styled.div`
+const CardTitleBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-bottom: 1.5px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.pageBg};
+`;
+
+const Dot = styled.span<{ $color: string }>`
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  flex-shrink: 0;
+`;
+
+const TitleBarPath = styled.span`
+  font-size: 10px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textMuted};
+  letter-spacing: 0.04em;
+  margin-left: 4px;
+`;
+
+const CardBody = styled.div`
   display: flex;
   align-items: center;
   gap: 14px;
+  padding: 14px 16px;
 `;
 
 const AvatarWrapper = styled.div<{ $color: string }>`
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  border: 2px solid ${({ theme }) => theme.colors.border};
-  background: ${({ $color }) => $color}18;
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
+  background: ${({ $color }) => $color}14;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,7 +95,7 @@ const AvatarImg = styled.img`
 
 const AvatarFallback = styled.span<{ $color: string }>`
   font-weight: 800;
-  font-size: 15px;
+  font-size: 14px;
   color: ${({ $color }) => $color};
 `;
 
@@ -79,7 +106,7 @@ const Info = styled.div`
 
 const Name = styled.p`
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
   color: ${({ theme }) => theme.colors.text};
   white-space: nowrap;
   overflow: hidden;
@@ -88,7 +115,7 @@ const Name = styled.p`
 `;
 
 const Email = styled.p`
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: ${({ theme }) => theme.colors.textMuted};
   white-space: nowrap;
@@ -97,17 +124,16 @@ const Email = styled.p`
   margin: 3px 0 0;
 `;
 
-const ArrowTag = styled.div`
-  font-size: 18px;
-  font-weight: 900;
+const Prompt = styled.div`
+  font-size: 13px;
+  font-weight: 700;
   color: ${({ theme }) => theme.colors.textMuted};
   flex-shrink: 0;
   line-height: 1;
-  transition: color 0.15s, transform 0.15s;
+  transition: color 0.15s;
 
   ${Card}:hover & {
     color: ${({ theme }) => theme.colors.primary};
-    transform: translateX(3px);
   }
 `;
 
@@ -128,9 +154,17 @@ export function UserCard({ user, index, onClick }: UserCardProps) {
     .join('')
     .toUpperCase();
 
+  const slug = user.username.toLowerCase();
+
   return (
     <Card $index={index} onClick={() => onClick(user)}>
-      <Row>
+      <CardTitleBar>
+        <Dot $color="#FF5F57" />
+        <Dot $color="#FFBD2E" />
+        <Dot $color="#28CA41" />
+        <TitleBarPath>~/users/{slug}</TitleBarPath>
+      </CardTitleBar>
+      <CardBody>
         <AvatarWrapper $color={color}>
           {imgError ? (
             <AvatarFallback $color={color}>{initials}</AvatarFallback>
@@ -146,8 +180,8 @@ export function UserCard({ user, index, onClick }: UserCardProps) {
           <Name>{user.name}</Name>
           <Email>{user.email}</Email>
         </Info>
-        <ArrowTag>→</ArrowTag>
-      </Row>
+        <Prompt>{'>_'}</Prompt>
+      </CardBody>
     </Card>
   );
 }

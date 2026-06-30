@@ -201,12 +201,33 @@ function DetailRow({ label, value, icon }: DetailRowProps) {
   );
 }
 
+const DeleteButton = styled.button`
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  border-top: 2px solid ${({ theme }) => theme.colors.border};
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+`;
+
 interface UserModalProps {
   user: User;
   onClose: () => void;
+  onDelete: (id: number) => void;
+  canDelete?: boolean;
 }
 
-export function UserModal({ user, onClose }: UserModalProps) {
+export function UserModal({ user, onClose, onDelete, canDelete = false }: UserModalProps) {
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
@@ -270,6 +291,11 @@ export function UserModal({ user, onClose }: UserModalProps) {
             value={user.company.name}
             icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
           />
+          {canDelete && (
+            <DeleteButton onClick={() => { onDelete(user.id); onClose(); }}>
+              🗑 Remover usuário
+            </DeleteButton>
+          )}
         </Body>
       </Dialog>
     </Overlay>

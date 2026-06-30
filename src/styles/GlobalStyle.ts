@@ -8,7 +8,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
     background-color: ${({ theme }) => theme.colors.pageBg};
     color: ${({ theme }) => theme.colors.text};
     -webkit-font-smoothing: antialiased;
