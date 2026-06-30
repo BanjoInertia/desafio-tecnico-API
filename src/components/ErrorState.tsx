@@ -10,49 +10,57 @@ const Wrapper = styled.div`
   gap: 16px;
 `;
 
-const IconCircle = styled.div`
+const IconBox = styled.div`
   width: 64px;
   height: 64px;
-  border-radius: 50%;
+  border-radius: 10px;
+  border: 2.5px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.errorBg};
+  box-shadow: ${({ theme }) => theme.colors.cardShadow};
   display: flex;
   align-items: center;
   justify-content: center;
 
   svg {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     color: ${({ theme }) => theme.colors.errorIcon};
   }
 `;
 
 const Title = styled.p`
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 18px;
   color: ${({ theme }) => theme.colors.text};
   margin: 0;
-  transition: color 0.3s;
 `;
 
 const Message = styled.p`
   font-size: 14px;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${({ theme }) => theme.colors.textMuted};
   margin: 4px 0 0;
-  transition: color 0.3s;
 `;
 
 const RetryButton = styled.button`
-  padding: 8px 20px;
-  background: ${({ theme }) => theme.colors.primary};
-  color: #fff;
+  padding: 10px 22px;
+  background: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.surface};
   font-size: 14px;
-  font-weight: 500;
-  border: none;
-  border-radius: 12px;
+  font-weight: 700;
+  border: 2.5px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: ${({ theme }) => theme.colors.cardShadow};
+  transition: box-shadow 0.15s, transform 0.15s;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.primaryHover};
+    box-shadow: 5px 5px 0 ${({ theme }) => theme.colors.border};
+    transform: translate(-1px, -1px);
+  }
+
+  &:active {
+    box-shadow: 2px 2px 0 ${({ theme }) => theme.colors.border};
+    transform: translate(0, 0);
   }
 `;
 
@@ -64,11 +72,11 @@ interface ErrorStateProps {
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <Wrapper>
-      <IconCircle>
+      <IconBox>
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
         </svg>
-      </IconCircle>
+      </IconBox>
       <div>
         <Title>Algo deu errado</Title>
         <Message>{message}</Message>

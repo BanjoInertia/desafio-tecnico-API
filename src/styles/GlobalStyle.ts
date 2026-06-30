@@ -9,9 +9,10 @@ export const GlobalStyle = createGlobalStyle`
 
   body {
     font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-    background-color: ${({ theme }) => theme.colors.bg};
+    background-color: ${({ theme }) => theme.colors.pageBg};
     color: ${({ theme }) => theme.colors.text};
     -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 `;

@@ -1,59 +1,75 @@
+import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import type { User } from '../types/user';
 
 const slideIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
+
+const AVATAR_COLORS = [
+  '#6366f1', '#ec4899', '#f59e0b',
+  '#10b981', '#3b82f6', '#8b5cf6',
+  '#ef4444', '#14b8a6',
+];
+
+function getDiceBearUrl(name: string) {
+  return `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(name)}&backgroundColor=transparent`;
+}
 
 const Card = styled.button<{ $index: number }>`
   width: 100%;
   text-align: left;
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  box-shadow: ${({ theme }) => theme.colors.shadow};
+  border-radius: 10px;
+  border: 2.5px solid ${({ theme }) => theme.colors.border};
+  padding: 18px 20px;
+  box-shadow: ${({ theme }) => theme.colors.cardShadow};
   cursor: pointer;
-  transition: box-shadow 0.2s, border-color 0.2s, background-color 0.3s;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, background-color 0.3s;
   animation: ${slideIn} 0.3s ease both;
-  animation-delay: ${({ $index }) => $index * 60}ms;
+  animation-delay: ${({ $index }) => $index * 45}ms;
 
   &:hover {
-    box-shadow: ${({ theme }) => theme.colors.shadowHover};
-    border-color: ${({ theme }) => theme.colors.borderHover};
+    box-shadow: ${({ theme }) => theme.colors.cardShadowHover};
+    transform: translate(-2px, -2px);
+  }
+
+  &:active {
+    box-shadow: ${({ theme }) => theme.colors.cardShadow};
+    transform: translate(0, 0);
   }
 `;
 
 const Row = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 `;
 
-const Avatar = styled.div`
+const AvatarWrapper = styled.div<{ $color: string }>`
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primaryLight};
-  color: ${({ theme }) => theme.colors.primaryText};
+  border-radius: 8px;
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  background: ${({ $color }) => $color}18;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
   flex-shrink: 0;
-  transition: background 0.2s;
+  overflow: hidden;
+`;
 
-  ${Card}:hover & {
-    background: ${({ theme }) => theme.colors.primaryLightHover};
-  }
+const AvatarImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const AvatarFallback = styled.span<{ $color: string }>`
+  font-weight: 800;
+  font-size: 15px;
+  color: ${({ $color }) => $color};
 `;
 
 const Info = styled.div`
@@ -62,34 +78,36 @@ const Info = styled.div`
 `;
 
 const Name = styled.p`
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 15px;
   color: ${({ theme }) => theme.colors.text};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
-  transition: color 0.3s;
 `;
 
 const Email = styled.p`
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 12px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textMuted};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 2px 0 0;
-  transition: color 0.3s;
+  margin: 3px 0 0;
 `;
 
-const ChevronIcon = styled.svg`
-  width: 20px;
-  height: 20px;
-  color: ${({ theme }) => theme.colors.border};
+const ArrowTag = styled.div`
+  font-size: 18px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.textMuted};
   flex-shrink: 0;
-  transition: color 0.2s;
+  line-height: 1;
+  transition: color 0.15s, transform 0.15s;
 
   ${Card}:hover & {
     color: ${({ theme }) => theme.colors.primary};
+    transform: translateX(3px);
   }
 `;
 
@@ -100,6 +118,9 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, index, onClick }: UserCardProps) {
+  const [imgError, setImgError] = useState(false);
+  const color = AVATAR_COLORS[user.id % AVATAR_COLORS.length];
+
   const initials = user.name
     .split(' ')
     .slice(0, 2)
@@ -110,14 +131,22 @@ export function UserCard({ user, index, onClick }: UserCardProps) {
   return (
     <Card $index={index} onClick={() => onClick(user)}>
       <Row>
-        <Avatar>{initials}</Avatar>
+        <AvatarWrapper $color={color}>
+          {imgError ? (
+            <AvatarFallback $color={color}>{initials}</AvatarFallback>
+          ) : (
+            <AvatarImg
+              src={getDiceBearUrl(user.name)}
+              alt={user.name}
+              onError={() => setImgError(true)}
+            />
+          )}
+        </AvatarWrapper>
         <Info>
           <Name>{user.name}</Name>
           <Email>{user.email}</Email>
         </Info>
-        <ChevronIcon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </ChevronIcon>
+        <ArrowTag>→</ArrowTag>
       </Row>
     </Card>
   );

@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import type { User } from '../types/user';
 
 const fadeIn = keyframes`
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 `;
 
-const slideUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+const popIn = keyframes`
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 `;
 
 const Overlay = styled.div`
@@ -21,121 +21,165 @@ const Overlay = styled.div`
   justify-content: center;
   padding: 16px;
   background: ${({ theme }) => theme.colors.overlay};
-  backdrop-filter: blur(4px);
-  animation: ${fadeIn} 0.2s ease;
+  animation: ${fadeIn} 0.18s ease;
 `;
 
 const Dialog = styled.div`
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 24px;
-  box-shadow: ${({ theme }) => theme.colors.shadowModal};
+  border-radius: 12px;
+  border: 2.5px solid ${({ theme }) => theme.colors.border};
+  box-shadow: ${({ theme }) => theme.colors.modalShadow};
   width: 100%;
   max-width: 420px;
   overflow: hidden;
-  animation: ${slideUp} 0.25s ease;
-  transition: background-color 0.3s;
+  animation: ${popIn} 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: background-color 0.3s, border-color 0.3s;
 `;
 
 const ModalHeader = styled.div`
-  background: ${({ theme }) => theme.colors.headerBg};
-  padding: 32px 24px 48px;
+  background: ${({ theme }) => theme.colors.heroBg};
+  padding: 28px 24px 44px;
+  position: relative;
+  overflow: hidden;
+`;
+
+const HeaderPattern = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    ${({ theme }) => theme.colors.heroPattern} 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+  pointer-events: none;
+`;
+
+const HeaderTop = styled.div`
   display: flex;
-  align-items: center;
-  gap: 16px;
-`;
-
-const HeaderAvatar = styled.div`
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: ${({ theme }) => theme.colors.headerOverlay};
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 22px;
-  flex-shrink: 0;
-`;
-
-const HeaderInfo = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const HeaderName = styled.h2`
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.3;
-`;
-
-const HeaderUsername = styled.p`
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
-  margin: 4px 0 0;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
 `;
 
 const CloseButton = styled.button`
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 2px solid ${({ theme }) => theme.colors.toggleBorder};
+  background: ${({ theme }) => theme.colors.toggleBg};
+  color: ${({ theme }) => theme.colors.toggleColor};
   cursor: pointer;
-  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
-  align-self: flex-start;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  transition: background 0.15s;
 
   &:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.15);
+    background: ${({ theme }) => theme.colors.toggleBorder};
   }
+`;
+
+const AvatarWrapper = styled.div`
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  border: 2.5px solid ${({ theme }) => theme.colors.toggleBorder};
+  background: ${({ theme }) => theme.colors.toggleBg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+`;
+
+const AvatarImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const AvatarFallback = styled.span`
+  font-weight: 900;
+  font-size: 26px;
+  color: ${({ theme }) => theme.colors.heroTitle};
+`;
+
+const HeaderName = styled.h2`
+  color: ${({ theme }) => theme.colors.heroTitle};
+  font-size: 22px;
+  font-weight: 900;
+  margin: 14px 0 0;
+  letter-spacing: -0.3px;
+  position: relative;
+  z-index: 1;
+`;
+
+const HeaderUsername = styled.p`
+  color: ${({ theme }) => theme.colors.heroSubtitle};
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0 0;
+  position: relative;
+  z-index: 1;
 `;
 
 const Body = styled.div`
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 24px 24px 0 0;
-  margin-top: -24px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  border-top: 2.5px solid ${({ theme }) => theme.colors.border};
+  padding: 8px 0;
   transition: background-color 0.3s;
 `;
 
 const DetailItem = styled.div`
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  border-bottom: 1.5px solid ${({ theme }) => theme.colors.border};
+
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
-const IconWrapper = styled.span`
-  color: ${({ theme }) => theme.colors.primary};
-  margin-top: 2px;
+const IconBox = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.primaryLight};
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  box-shadow: 2px 2px 0 ${({ theme }) => theme.colors.border};
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
 const DetailLabel = styled.p`
-  font-size: 11px;
+  font-size: 10px;
   color: ${({ theme }) => theme.colors.textMuted};
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  font-weight: 700;
   margin: 0;
 `;
 
 const DetailValue = styled.p`
   color: ${({ theme }) => theme.colors.text};
-  font-weight: 500;
-  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 3px 0 0;
   transition: color 0.3s;
 `;
 
@@ -148,7 +192,7 @@ interface DetailRowProps {
 function DetailRow({ label, value, icon }: DetailRowProps) {
   return (
     <DetailItem>
-      <IconWrapper>{icon}</IconWrapper>
+      <IconBox>{icon}</IconBox>
       <div>
         <DetailLabel>{label}</DetailLabel>
         <DetailValue>{value}</DetailValue>
@@ -163,6 +207,8 @@ interface UserModalProps {
 }
 
 export function UserModal({ user, onClose }: UserModalProps) {
+  const [imgError, setImgError] = useState(false);
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -178,59 +224,51 @@ export function UserModal({ user, onClose }: UserModalProps) {
     .join('')
     .toUpperCase();
 
+  const avatarUrl = `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=transparent`;
+
   return (
     <Overlay onClick={onClose}>
       <Dialog onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
-          <HeaderAvatar>{initials}</HeaderAvatar>
-          <HeaderInfo>
-            <HeaderName>{user.name}</HeaderName>
-            <HeaderUsername>@{user.username}</HeaderUsername>
-          </HeaderInfo>
-          <CloseButton onClick={onClose} aria-label="Fechar">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </CloseButton>
+          <HeaderPattern />
+          <HeaderTop>
+            <CloseButton onClick={onClose} aria-label="Fechar">✕</CloseButton>
+          </HeaderTop>
+          <AvatarWrapper>
+            {imgError ? (
+              <AvatarFallback>{initials}</AvatarFallback>
+            ) : (
+              <AvatarImg
+                src={avatarUrl}
+                alt={user.name}
+                onError={() => setImgError(true)}
+              />
+            )}
+          </AvatarWrapper>
+          <HeaderName>{user.name}</HeaderName>
+          <HeaderUsername>@{user.username}</HeaderUsername>
         </ModalHeader>
 
         <Body>
           <DetailRow
             label="Email"
             value={user.email}
-            icon={
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            }
+            icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
           />
           <DetailRow
             label="Telefone"
             value={user.phone}
-            icon={
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-            }
+            icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
           />
           <DetailRow
             label="Cidade"
             value={user.address.city}
-            icon={
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            }
+            icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
           />
           <DetailRow
             label="Empresa"
             value={user.company.name}
-            icon={
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            }
+            icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
           />
         </Body>
       </Dialog>

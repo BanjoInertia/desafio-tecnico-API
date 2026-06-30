@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import { useUsers } from './hooks/useUsers';
-import { useTheme } from './context/ThemeContext';
+import { useDebounce } from './hooks/useDebounce';
+import { useTheme as useAppTheme } from './context/ThemeContext';
+import { ParticleCanvas } from './components/ParticleCanvas';
+import { SplashScreen } from './components/SplashScreen';
 import { SearchBar } from './components/SearchBar';
 import { UserCard } from './components/UserCard';
 import { UserModal } from './components/UserModal';
@@ -9,159 +12,231 @@ import { LoadingState } from './components/LoadingState';
 import { ErrorState } from './components/ErrorState';
 import type { User } from './types/user';
 
-const PageWrapper = styled.div`
+const PageWrapper = styled.div<{ $visible: boolean }>`
   min-height: 100vh;
-  background: ${({ theme }) => theme.colors.bg};
-  transition: background-color 0.3s ease;
+  position: relative;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  transition: opacity 0.5s ease 0.1s;
 `;
 
-const Header = styled.header`
-  background: ${({ theme }) => theme.colors.surface};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  box-shadow: ${({ theme }) => theme.colors.shadow};
-  transition: background-color 0.3s, border-color 0.3s;
+const Content = styled.div`
+  position: relative;
+  z-index: 1;
 `;
 
-const HeaderInner = styled.div`
-  max-width: 640px;
+const Hero = styled.header`
+  background: ${({ theme }) => theme.colors.heroBg};
+  padding: 40px 24px 72px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 2.5px solid ${({ theme }) => theme.colors.heroBg === '#1A1A1A' ? 'transparent' : '#1A1A1A'};
+`;
+
+const HeroPattern = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    ${({ theme }) => theme.colors.heroPattern} 1.5px,
+    transparent 1.5px
+  );
+  background-size: 22px 22px;
+  pointer-events: none;
+`;
+
+const HeroInner = styled.div`
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px 16px;
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
 `;
 
-const TitleGroup = styled.div``;
+const HeroText = styled.div``;
 
-const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.text};
+const HeroLabel = styled.p`
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.heroSubtitle};
+  margin: 0 0 8px;
+`;
+
+const HeroTitle = styled.h1`
+  font-size: 42px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.heroTitle};
   margin: 0;
-  transition: color 0.3s;
-`;
-
-const Subtitle = styled.p`
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  margin: 4px 0 0;
-  transition: color 0.3s;
+  letter-spacing: -1px;
+  line-height: 1;
 `;
 
 const ThemeToggle = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.bg};
-  color: ${({ theme }) => theme.colors.textSecondary};
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  border: 2px solid ${({ theme }) => theme.colors.toggleBorder};
+  background: ${({ theme }) => theme.colors.toggleBg};
+  color: ${({ theme }) => theme.colors.toggleColor};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
   flex-shrink: 0;
+  font-size: 18px;
+  transition: background 0.15s;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.toggleBorder};
   }
 `;
 
-const Main = styled.main`
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 24px 16px;
+const MainContent = styled.main`
+  max-width: 900px;
+  margin: -32px auto 0;
+  padding: 0 16px 48px;
 `;
 
-const SearchWrapper = styled.div`
+const SearchCard = styled.div`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 2.5px solid ${({ theme }) => theme.colors.border};
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: ${({ theme }) => theme.colors.searchShadow};
   margin-bottom: 20px;
+  transition: background-color 0.3s;
 `;
 
-const UserList = styled.div`
+const SearchRow = styled.div`
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
+`;
+
+const ResultsBadge = styled.span`
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.badgeText};
+  background: ${({ theme }) => theme.colors.badge};
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 ${({ theme }) => theme.colors.border};
+`;
+
+const UserGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const Empty = styled.div`
   text-align: center;
   padding: 64px 16px;
-  color: ${({ theme }) => theme.colors.textMuted};
+  grid-column: 1 / -1;
+`;
+
+const EmptyEmoji = styled.div`
+  font-size: 48px;
+  margin-bottom: 12px;
 `;
 
 const EmptyTitle = styled.p`
-  font-size: 17px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
 
 const EmptySubtitle = styled.p`
   font-size: 14px;
-  margin: 4px 0 0;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 6px 0 0;
 `;
+
+function ThemeToggleButton() {
+  const { isDark, toggleTheme } = useAppTheme();
+  return (
+    <ThemeToggle onClick={toggleTheme} aria-label="Alternar tema">
+      {isDark ? '☀️' : '🌙'}
+    </ThemeToggle>
+  );
+}
 
 export default function App() {
   const { users, loading, error } = useUsers();
-  const { isDark, toggleTheme } = useTheme();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [splashDone, setSplashDone] = useState(false);
+  const theme = useTheme();
 
   const filtered = useMemo(
-    () => users.filter((u) => u.name.toLowerCase().includes(search.toLowerCase())),
-    [users, search]
+    () => users.filter((u) => u.name.toLowerCase().includes(debouncedSearch.toLowerCase())),
+    [users, debouncedSearch]
   );
 
   return (
-    <PageWrapper>
-      <Header>
-        <HeaderInner>
-          <TitleGroup>
-            <Title>Usuários</Title>
-            <Subtitle>Diretório de usuários JSONPlaceholder</Subtitle>
-          </TitleGroup>
-          <ThemeToggle onClick={toggleTheme} aria-label="Alternar tema">
-            {isDark ? (
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </ThemeToggle>
-        </HeaderInner>
-      </Header>
+    <>
+      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+      <PageWrapper $visible={splashDone}>
+      <ParticleCanvas colors={theme.colors.particleColors} />
 
-      <Main>
-        <SearchWrapper>
-          <SearchBar value={search} onChange={setSearch} />
-        </SearchWrapper>
+      <Content>
+        <Hero>
+          <HeroPattern />
+          <HeroInner>
+            <HeroText>
+              <HeroLabel>JSONPlaceholder API</HeroLabel>
+              <HeroTitle>Usuários</HeroTitle>
+            </HeroText>
+            <ThemeToggleButton />
+          </HeroInner>
+        </Hero>
 
-        {loading && <LoadingState />}
+        <MainContent>
+          <SearchCard>
+            <SearchRow>
+              <SearchBar value={search} onChange={setSearch} />
+              {!loading && !error && (
+                <ResultsBadge>{filtered.length}/{users.length}</ResultsBadge>
+              )}
+            </SearchRow>
+          </SearchCard>
 
-        {error && <ErrorState message={error} onRetry={() => window.location.reload()} />}
+          {loading && <LoadingState />}
+          {error && <ErrorState message={error} onRetry={() => window.location.reload()} />}
 
-        {!loading && !error && (
-          filtered.length === 0 ? (
-            <Empty>
-              <EmptyTitle>Nenhum usuário encontrado</EmptyTitle>
-              <EmptySubtitle>Tente um nome diferente</EmptySubtitle>
-            </Empty>
-          ) : (
-            <UserList>
-              {filtered.map((user, index) => (
-                <UserCard key={user.id} user={user} index={index} onClick={setSelectedUser} />
-              ))}
-            </UserList>
-          )
-        )}
-      </Main>
+          {!loading && !error && (
+            <UserGrid>
+              {filtered.length === 0 ? (
+                <Empty>
+                  <EmptyEmoji>🔍</EmptyEmoji>
+                  <EmptyTitle>Nenhum usuário encontrado</EmptyTitle>
+                  <EmptySubtitle>Tente buscar por outro nome</EmptySubtitle>
+                </Empty>
+              ) : (
+                filtered.map((user, index) => (
+                  <UserCard key={user.id} user={user} index={index} onClick={setSelectedUser} />
+                ))
+              )}
+            </UserGrid>
+          )}
+        </MainContent>
+      </Content>
 
       {selectedUser && (
         <UserModal user={selectedUser} onClose={() => setSelectedUser(null)} />
       )}
-    </PageWrapper>
+      </PageWrapper>
+    </>
   );
 }

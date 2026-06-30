@@ -11,31 +11,33 @@ const Icon = styled.svg`
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   color: ${({ theme }) => theme.colors.textMuted};
   pointer-events: none;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 10px 16px 10px 38px;
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 11px 16px 11px 40px;
+  border-radius: 8px;
+  border: 2.5px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text};
   font-size: 14px;
-  box-shadow: ${({ theme }) => theme.colors.shadow};
+  font-weight: 500;
+  box-shadow: ${({ theme }) => theme.colors.inputShadow};
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s;
+  transition: box-shadow 0.15s, border-color 0.15s, background-color 0.3s;
 
   &::placeholder {
     color: ${({ theme }) => theme.colors.textMuted};
+    font-weight: 400;
   }
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.inputFocusRing};
+    box-shadow: ${({ theme }) => theme.colors.inputShadowFocus};
   }
 `;
 
@@ -48,7 +50,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <Wrapper>
       <Icon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
       </Icon>
       <Input
         type="text"

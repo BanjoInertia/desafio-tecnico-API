@@ -21,15 +21,22 @@ describe('UserCard', () => {
     expect(screen.getByText('Sincere@april.biz')).toBeInTheDocument();
   });
 
-  it('exibe as iniciais do nome no avatar', () => {
+  it('exibe avatar com o nome do usuário como alt', () => {
     render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
-    expect(screen.getByText('LG')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Leanne Graham' })).toBeInTheDocument();
+  });
+
+  it('exibe iniciais como fallback se o avatar falhar', async () => {
+    render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
+    const img = screen.getByRole('img', { name: 'Leanne Graham' });
+    img.dispatchEvent(new Event('error'));
+    expect(await screen.findByText('LG')).toBeInTheDocument();
   });
 
   it('chama onClick ao clicar no card', async () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
-    render(<UserCard user={mockUser} onClick={handleClick} />);
+    render(<UserCard user={mockUser} index={0} onClick={handleClick} />);
 
     await user.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledWith(mockUser);
