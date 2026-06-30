@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { User } from '../types/user';
 
 const fadeIn = keyframes`
@@ -228,6 +230,8 @@ interface UserModalProps {
 }
 
 export function UserModal({ user, onClose, onDelete, canDelete = false }: UserModalProps) {
+  useBodyScrollLock();
+  const dialogRef = useFocusTrap();
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
@@ -249,7 +253,7 @@ export function UserModal({ user, onClose, onDelete, canDelete = false }: UserMo
 
   return (
     <Overlay onClick={onClose}>
-      <Dialog onClick={(e) => e.stopPropagation()}>
+      <Dialog ref={dialogRef} onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <HeaderPattern />
           <HeaderTop>

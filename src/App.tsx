@@ -3,6 +3,7 @@ import styled, { useTheme } from 'styled-components';
 import { useUsers } from './hooks/useUsers';
 import { useDebounce } from './hooks/useDebounce';
 import { useTheme as useAppTheme } from './context/ThemeContext';
+import { useToast } from './context/ToastContext';
 import { ParticleCanvas } from './components/ParticleCanvas';
 import { SplashScreen } from './components/SplashScreen';
 import { SearchBar } from './components/SearchBar';
@@ -11,7 +12,10 @@ import { UserModal } from './components/UserModal';
 import { AddUserModal } from './components/AddUserModal';
 import { LoadingState } from './components/LoadingState';
 import { ErrorState } from './components/ErrorState';
+import { ToastContainer } from './components/Toast';
 import type { User } from './types/user';
+
+type SortOption = 'default' | 'name_asc' | 'name_desc' | 'company_asc';
 
 const PageWrapper = styled.div<{ $visible: boolean }>`
   min-height: 100vh;
@@ -160,6 +164,43 @@ const SearchRow = styled.div`
   gap: 12px;
 `;
 
+const FilterRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  flex-wrap: wrap;
+`;
+
+const FilterLabel = styled.span`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.textMuted};
+  flex-shrink: 0;
+`;
+
+const FilterSelect = styled.select`
+  background: ${({ theme }) => theme.colors.pageBg};
+  color: ${({ theme }) => theme.colors.text};
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 const AddButton = styled.button`
   white-space: nowrap;
   padding: 8px 14px;
@@ -242,17 +283,52 @@ function ThemeToggleButton() {
 
 export default function App() {
   const { users, loading, error, addUser, removeUser, isLocalUser } = useUsers();
+  const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [splashDone, setSplashDone] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('default');
+  const [filterCompany, setFilterCompany] = useState('');
+  const [filterCity, setFilterCity] = useState('');
   const theme = useTheme();
 
-  const filtered = useMemo(
-    () => users.filter((u) => u.name.toLowerCase().includes(debouncedSearch.toLowerCase())),
-    [users, debouncedSearch]
+  const companies = useMemo(
+    () => [...new Set(users.map((u) => u.company.name))].sort(),
+    [users]
   );
+
+  const cities = useMemo(
+    () => [...new Set(users.map((u) => u.address.city))].sort(),
+    [users]
+  );
+
+  const filtered = useMemo(() => {
+    let result = users.filter((u) =>
+      u.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+    if (filterCompany) result = result.filter((u) => u.company.name === filterCompany);
+    if (filterCity) result = result.filter((u) => u.address.city === filterCity);
+
+    return [...result].sort((a, b) => {
+      if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
+      if (sortBy === 'company_asc') return a.company.name.localeCompare(b.company.name);
+      return 0;
+    });
+  }, [users, debouncedSearch, filterCompany, filterCity, sortBy]);
+
+  function handleAdd(user: User) {
+    addUser(user);
+    showToast('Usuário criado com sucesso');
+  }
+
+  function handleDelete(id: number) {
+    removeUser(id);
+    setSelectedUser(null);
+    showToast('Usuário removido', 'error');
+  }
 
   return (
     <>
@@ -285,6 +361,27 @@ export default function App() {
               )}
               <AddButton onClick={() => setShowAddModal(true)}>+ Novo</AddButton>
             </SearchRow>
+            {!loading && !error && (
+              <FilterRow>
+                <FilterLabel>ordenar</FilterLabel>
+                <FilterSelect value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)}>
+                  <option value="default">Padrão</option>
+                  <option value="name_asc">Nome A→Z</option>
+                  <option value="name_desc">Nome Z→A</option>
+                  <option value="company_asc">Empresa A→Z</option>
+                </FilterSelect>
+                <FilterLabel>empresa</FilterLabel>
+                <FilterSelect value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)}>
+                  <option value="">Todas</option>
+                  {companies.map((c) => <option key={c} value={c}>{c}</option>)}
+                </FilterSelect>
+                <FilterLabel>cidade</FilterLabel>
+                <FilterSelect value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
+                  <option value="">Todas</option>
+                  {cities.map((c) => <option key={c} value={c}>{c}</option>)}
+                </FilterSelect>
+              </FilterRow>
+            )}
           </SearchCard>
 
           {loading && <LoadingState />}
@@ -300,7 +397,13 @@ export default function App() {
                 </Empty>
               ) : (
                 filtered.map((user, index) => (
-                  <UserCard key={user.id} user={user} index={index} onClick={setSelectedUser} />
+                  <UserCard
+                    key={user.id}
+                    user={user}
+                    index={index}
+                    isLocal={isLocalUser(user.id)}
+                    onClick={setSelectedUser}
+                  />
                 ))
               )}
             </UserGrid>
@@ -312,13 +415,19 @@ export default function App() {
         <UserModal
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
-          onDelete={(id) => { removeUser(id); setSelectedUser(null); }}
+          onDelete={handleDelete}
           canDelete={isLocalUser(selectedUser.id)}
         />
       )}
       {showAddModal && (
-        <AddUserModal onClose={() => setShowAddModal(false)} onAdd={addUser} />
+        <AddUserModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAdd}
+          companies={companies}
+          cities={cities}
+        />
       )}
+      <ToastContainer />
       </PageWrapper>
     </>
   );

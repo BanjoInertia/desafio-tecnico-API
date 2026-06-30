@@ -65,6 +65,19 @@ const TitleBarPath = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
   letter-spacing: 0.04em;
   margin-left: 4px;
+  flex: 1;
+`;
+
+const LocalBadge = styled.span`
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: ${({ theme }) => theme.colors.primary};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  padding: 1px 5px;
+  border-radius: 2px;
+  opacity: 0.85;
+  flex-shrink: 0;
 `;
 
 const CardBody = styled.div`
@@ -140,10 +153,11 @@ const Prompt = styled.div`
 interface UserCardProps {
   user: User;
   index: number;
+  isLocal?: boolean;
   onClick: (user: User) => void;
 }
 
-export function UserCard({ user, index, onClick }: UserCardProps) {
+export function UserCard({ user, index, isLocal = false, onClick }: UserCardProps) {
   const [imgError, setImgError] = useState(false);
   const color = AVATAR_COLORS[user.id % AVATAR_COLORS.length];
 
@@ -163,6 +177,7 @@ export function UserCard({ user, index, onClick }: UserCardProps) {
         <Dot $color="#FFBD2E" />
         <Dot $color="#28CA41" />
         <TitleBarPath>~/users/{slug}</TitleBarPath>
+        {isLocal && <LocalBadge>LOCAL</LocalBadge>}
       </CardTitleBar>
       <CardBody>
         <AvatarWrapper $color={color}>

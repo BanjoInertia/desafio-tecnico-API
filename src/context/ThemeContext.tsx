@@ -22,10 +22,13 @@ interface AppThemeProviderProps {
 }
 
 export function AppThemeProvider({ children }: AppThemeProviderProps) {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
 
   function toggleTheme() {
-    setIsDark((prev) => !prev);
+    setIsDark((prev) => {
+      localStorage.setItem('theme', !prev ? 'dark' : 'light');
+      return !prev;
+    });
   }
 
   return (

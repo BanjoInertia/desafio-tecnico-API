@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { createUser, type NewUserData } from '../services/api';
+import { Combobox } from './Combobox';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { User } from '../types/user';
 
 const fadeIn = keyframes`
@@ -31,9 +34,9 @@ const Dialog = styled.div`
   border: 2.5px solid ${({ theme }) => theme.colors.border};
   box-shadow: ${({ theme }) => theme.colors.modalShadow};
   width: 100%;
-  max-width: 460px;
-  overflow: hidden;
+  max-width: 480px;
   animation: ${popIn} 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
 `;
 
 const Header = styled.div`
@@ -50,11 +53,10 @@ const Header = styled.div`
 const HeaderPattern = styled.div`
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(
-    ${({ theme }) => theme.colors.heroPattern} 1.5px,
-    transparent 1.5px
-  );
-  background-size: 18px 18px;
+  background-image:
+    linear-gradient(${({ theme }) => theme.colors.heroPattern} 1px, transparent 1px),
+    linear-gradient(90deg, ${({ theme }) => theme.colors.heroPattern} 1px, transparent 1px);
+  background-size: 24px 24px;
   pointer-events: none;
 `;
 
@@ -110,6 +112,7 @@ const Field = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 `;
 
 const Label = styled.label`
@@ -131,8 +134,9 @@ const Input = styled.input<{ $error?: boolean }>`
   border: 2px solid ${({ theme, $error }) => ($error ? '#ef4444' : theme.colors.border)};
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text};
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   box-shadow: ${({ theme, $error }) => ($error ? '3px 3px 0 #ef4444' : theme.colors.inputShadow)};
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -143,8 +147,8 @@ const Input = styled.input<{ $error?: boolean }>`
   }
 
   &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: ${({ theme }) => theme.colors.inputShadowFocus};
+    border-color: ${({ $error, theme }) => ($error ? '#ef4444' : theme.colors.primary)};
+    box-shadow: ${({ $error, theme }) => ($error ? '3px 3px 0 #ef4444' : theme.colors.inputShadowFocus)};
   }
 `;
 
@@ -166,8 +170,9 @@ const CancelButton = styled.button`
   padding: 10px 20px;
   background: transparent;
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  font-family: inherit;
   border: 2px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
   cursor: pointer;
@@ -184,8 +189,9 @@ const SubmitButton = styled.button`
   padding: 10px 22px;
   background: ${({ theme }) => theme.colors.text};
   color: ${({ theme }) => theme.colors.surface};
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
+  font-family: inherit;
   border: 2.5px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
   cursor: pointer;
@@ -212,6 +218,16 @@ const ApiNote = styled.p`
   margin: 0;
 `;
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length === 0) return '';
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 interface FormErrors {
   name?: string;
   email?: string;
@@ -220,13 +236,18 @@ interface FormErrors {
 interface AddUserModalProps {
   onClose: () => void;
   onAdd: (user: User) => void;
+  companies?: string[];
+  cities?: string[];
 }
 
-export function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
+export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: AddUserModalProps) {
+  useBodyScrollLock();
+  const dialogRef = useFocusTrap();
   const [form, setForm] = useState<NewUserData>({
     name: '', email: '', phone: '', company: '', city: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof FormErrors, boolean>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -238,24 +259,40 @@ export function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  function validate(): boolean {
-    const next: FormErrors = {};
-    if (!form.name.trim()) next.name = 'Nome é obrigatório';
-    else if (form.name.trim().length < 2) next.name = 'Nome muito curto';
+  function validateField(field: keyof FormErrors, value: string): string | undefined {
+    if (field === 'name') {
+      if (!value.trim()) return 'Nome é obrigatório';
+      if (value.trim().length < 2) return 'Nome muito curto';
+    }
+    if (field === 'email') {
+      if (!value.trim()) return 'Email é obrigatório';
+      if (!emailRegex.test(value)) return 'Email inválido';
+    }
+  }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!form.email.trim()) next.email = 'Email é obrigatório';
-    else if (!emailRegex.test(form.email)) next.email = 'Email inválido';
-
-    setErrors(next);
-    return Object.keys(next).length === 0;
+  function handleBlur(field: keyof FormErrors) {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const error = validateField(field, form[field]);
+    setErrors((prev) => ({ ...prev, [field]: error }));
   }
 
   function handleChange(field: keyof NewUserData, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    const next = field === 'phone' ? formatPhone(value) : value;
+    setForm((prev) => ({ ...prev, [field]: next }));
+    if (touched[field as keyof FormErrors]) {
+      const error = validateField(field as keyof FormErrors, next);
+      setErrors((prev) => ({ ...prev, [field]: error }));
     }
+  }
+
+  function validate(): boolean {
+    const next: FormErrors = {
+      name: validateField('name', form.name),
+      email: validateField('email', form.email),
+    };
+    setErrors(next);
+    setTouched({ name: true, email: true });
+    return !next.name && !next.email;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -276,8 +313,8 @@ export function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
   }
 
   return (
-    <Overlay onClick={onClose}>
-      <Dialog onClick={(e) => e.stopPropagation()}>
+    <Overlay>
+      <Dialog ref={dialogRef}>
         <Header>
           <HeaderPattern />
           <HeaderTitle>Novo Usuário</HeaderTitle>
@@ -292,6 +329,7 @@ export function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                 placeholder="Nome completo"
                 value={form.name}
                 onChange={(e) => handleChange('name', e.target.value)}
+                onBlur={() => handleBlur('name')}
                 $error={!!errors.name}
               />
               {errors.name && <ErrorMsg>{errors.name}</ErrorMsg>}
@@ -304,6 +342,7 @@ export function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                 placeholder="email@exemplo.com"
                 value={form.email}
                 onChange={(e) => handleChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
                 $error={!!errors.email}
               />
               {errors.email && <ErrorMsg>{errors.email}</ErrorMsg>}
@@ -317,25 +356,28 @@ export function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                 placeholder="(11) 99999-9999"
                 value={form.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
+                inputMode="numeric"
               />
             </Field>
 
             <Field>
               <Label>Cidade</Label>
-              <Input
-                placeholder="São Paulo"
+              <Combobox
                 value={form.city}
-                onChange={(e) => handleChange('city', e.target.value)}
+                onChange={(v) => handleChange('city', v)}
+                options={cities}
+                placeholder="Selecione ou digite"
               />
             </Field>
           </Row>
 
           <Field>
             <Label>Empresa</Label>
-            <Input
-              placeholder="Nome da empresa"
+            <Combobox
               value={form.company}
-              onChange={(e) => handleChange('company', e.target.value)}
+              onChange={(v) => handleChange('company', v)}
+              options={companies}
+              placeholder="Selecione ou digite"
             />
           </Field>
 
