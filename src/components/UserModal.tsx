@@ -8,7 +8,7 @@ const fadeIn = keyframes`
 `;
 
 const slideUp = keyframes`
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
@@ -20,23 +20,24 @@ const Overlay = styled.div`
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${({ theme }) => theme.colors.overlay};
   backdrop-filter: blur(4px);
   animation: ${fadeIn} 0.2s ease;
 `;
 
 const Dialog = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: ${({ theme }) => theme.colors.shadowModal};
   width: 100%;
   max-width: 420px;
   overflow: hidden;
   animation: ${slideUp} 0.25s ease;
+  transition: background-color 0.3s;
 `;
 
 const ModalHeader = styled.div`
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: ${({ theme }) => theme.colors.headerBg};
   padding: 32px 24px 48px;
   display: flex;
   align-items: center;
@@ -47,7 +48,7 @@ const HeaderAvatar = styled.div`
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: ${({ theme }) => theme.colors.headerOverlay};
   color: #fff;
   display: flex;
   align-items: center;
@@ -81,7 +82,7 @@ const CloseButton = styled.button`
   border: none;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,18 +92,19 @@ const CloseButton = styled.button`
 
   &:hover {
     color: #fff;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
   }
 `;
 
 const Body = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 24px 24px 0 0;
   margin-top: -24px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  transition: background-color 0.3s;
 `;
 
 const DetailItem = styled.div`
@@ -112,7 +114,7 @@ const DetailItem = styled.div`
 `;
 
 const IconWrapper = styled.span`
-  color: #6366f1;
+  color: ${({ theme }) => theme.colors.primary};
   margin-top: 2px;
   flex-shrink: 0;
 
@@ -122,20 +124,19 @@ const IconWrapper = styled.span`
   }
 `;
 
-const DetailText = styled.div``;
-
 const DetailLabel = styled.p`
   font-size: 11px;
-  color: #9ca3af;
+  color: ${({ theme }) => theme.colors.textMuted};
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0;
 `;
 
 const DetailValue = styled.p`
-  color: #1f2937;
+  color: ${({ theme }) => theme.colors.text};
   font-weight: 500;
   margin: 2px 0 0;
+  transition: color 0.3s;
 `;
 
 interface DetailRowProps {
@@ -148,10 +149,10 @@ function DetailRow({ label, value, icon }: DetailRowProps) {
   return (
     <DetailItem>
       <IconWrapper>{icon}</IconWrapper>
-      <DetailText>
+      <div>
         <DetailLabel>{label}</DetailLabel>
         <DetailValue>{value}</DetailValue>
-      </DetailText>
+      </div>
     </DetailItem>
   );
 }

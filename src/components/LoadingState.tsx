@@ -6,21 +6,27 @@ const shimmer = keyframes`
 `;
 
 const SkeletonBase = styled.div`
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(
+    90deg,
+    ${({ theme }) => theme.colors.skeletonBase} 25%,
+    ${({ theme }) => theme.colors.skeletonShimmer} 50%,
+    ${({ theme }) => theme.colors.skeletonBase} 75%
+  );
   background-size: 800px 100%;
   animation: ${shimmer} 1.4s infinite linear;
   border-radius: 8px;
 `;
 
 const Card = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid #f3f4f6;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  box-shadow: ${({ theme }) => theme.colors.shadow};
   display: flex;
   align-items: center;
   gap: 16px;
+  transition: background-color 0.3s;
 `;
 
 const Circle = styled(SkeletonBase)`
@@ -37,8 +43,8 @@ const Lines = styled.div`
   gap: 8px;
 `;
 
-const Line = styled(SkeletonBase)<{ $width: string }>`
-  height: ${({ $width }) => ($width === '40%' ? '12px' : '16px')};
+const Line = styled(SkeletonBase)<{ $width: string; $height?: string }>`
+  height: ${({ $height }) => $height ?? '16px'};
   width: ${({ $width }) => $width};
 `;
 
@@ -56,7 +62,7 @@ export function LoadingState() {
           <Circle />
           <Lines>
             <Line $width="50%" />
-            <Line $width="65%" />
+            <Line $width="65%" $height="12px" />
           </Lines>
         </Card>
       ))}

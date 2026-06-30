@@ -14,7 +14,7 @@ const IconCircle = styled.div`
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #fee2e2;
+  background: ${({ theme }) => theme.colors.errorBg};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,25 +22,27 @@ const IconCircle = styled.div`
   svg {
     width: 32px;
     height: 32px;
-    color: #ef4444;
+    color: ${({ theme }) => theme.colors.errorIcon};
   }
 `;
 
 const Title = styled.p`
   font-weight: 600;
-  color: #1f2937;
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
+  transition: color 0.3s;
 `;
 
 const Message = styled.p`
   font-size: 14px;
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.textSecondary};
   margin: 4px 0 0;
+  transition: color 0.3s;
 `;
 
 const RetryButton = styled.button`
   padding: 8px 20px;
-  background: #4f46e5;
+  background: ${({ theme }) => theme.colors.primary};
   color: #fff;
   font-size: 14px;
   font-weight: 500;
@@ -50,7 +52,7 @@ const RetryButton = styled.button`
   transition: background 0.2s;
 
   &:hover {
-    background: #4338ca;
+    background: ${({ theme }) => theme.colors.primaryHover};
   }
 `;
 

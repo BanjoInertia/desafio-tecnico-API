@@ -1,20 +1,33 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import type { User } from '../types/user';
 
-const Card = styled.button`
+const slideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const Card = styled.button<{ $index: number }>`
   width: 100%;
   text-align: left;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid #f3f4f6;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  box-shadow: ${({ theme }) => theme.colors.shadow};
   cursor: pointer;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s, background-color 0.3s;
+  animation: ${slideIn} 0.3s ease both;
+  animation-delay: ${({ $index }) => $index * 60}ms;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: #c7d2fe;
+    box-shadow: ${({ theme }) => theme.colors.shadowHover};
+    border-color: ${({ theme }) => theme.colors.borderHover};
   }
 `;
 
@@ -28,8 +41,8 @@ const Avatar = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: ${({ theme }) => theme.colors.primaryLight};
+  color: ${({ theme }) => theme.colors.primaryText};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,7 +52,7 @@ const Avatar = styled.div`
   transition: background 0.2s;
 
   ${Card}:hover & {
-    background: #c7d2fe;
+    background: ${({ theme }) => theme.colors.primaryLightHover};
   }
 `;
 
@@ -50,41 +63,43 @@ const Info = styled.div`
 
 const Name = styled.p`
   font-weight: 600;
-  color: #111827;
+  color: ${({ theme }) => theme.colors.text};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
+  transition: color 0.3s;
 `;
 
 const Email = styled.p`
   font-size: 13px;
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.textSecondary};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0;
-  margin-top: 2px;
+  margin: 2px 0 0;
+  transition: color 0.3s;
 `;
 
 const ChevronIcon = styled.svg`
   width: 20px;
   height: 20px;
-  color: #d1d5db;
+  color: ${({ theme }) => theme.colors.border};
   flex-shrink: 0;
   transition: color 0.2s;
 
   ${Card}:hover & {
-    color: #6366f1;
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
 interface UserCardProps {
   user: User;
+  index: number;
   onClick: (user: User) => void;
 }
 
-export function UserCard({ user, onClick }: UserCardProps) {
+export function UserCard({ user, index, onClick }: UserCardProps) {
   const initials = user.name
     .split(' ')
     .slice(0, 2)
@@ -93,7 +108,7 @@ export function UserCard({ user, onClick }: UserCardProps) {
     .toUpperCase();
 
   return (
-    <Card onClick={() => onClick(user)}>
+    <Card $index={index} onClick={() => onClick(user)}>
       <Row>
         <Avatar>{initials}</Avatar>
         <Info>

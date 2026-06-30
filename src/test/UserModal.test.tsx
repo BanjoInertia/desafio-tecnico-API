@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './utils';
 import userEvent from '@testing-library/user-event';
 import { UserModal } from '../components/UserModal';
 import type { User } from '../types/user';

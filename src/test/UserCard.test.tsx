@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './utils';
 import userEvent from '@testing-library/user-event';
 import { UserCard } from '../components/UserCard';
 import type { User } from '../types/user';
@@ -16,13 +16,13 @@ const mockUser: User = {
 
 describe('UserCard', () => {
   it('exibe nome e email do usuário', () => {
-    render(<UserCard user={mockUser} onClick={() => {}} />);
+    render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
     expect(screen.getByText('Leanne Graham')).toBeInTheDocument();
     expect(screen.getByText('Sincere@april.biz')).toBeInTheDocument();
   });
 
   it('exibe as iniciais do nome no avatar', () => {
-    render(<UserCard user={mockUser} onClick={() => {}} />);
+    render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
     expect(screen.getByText('LG')).toBeInTheDocument();
   });
 

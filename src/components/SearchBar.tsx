@@ -13,7 +13,7 @@ const Icon = styled.svg`
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: #9ca3af;
+  color: ${({ theme }) => theme.colors.textMuted};
   pointer-events: none;
 `;
 
@@ -21,21 +21,21 @@ const Input = styled.input`
   width: 100%;
   padding: 10px 16px 10px 38px;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
   font-size: 14px;
-  color: #111827;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: ${({ theme }) => theme.colors.shadow};
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s;
 
   &::placeholder {
-    color: #9ca3af;
+    color: ${({ theme }) => theme.colors.textMuted};
   }
 
   &:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.inputFocusRing};
   }
 `;
 
