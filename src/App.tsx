@@ -84,6 +84,9 @@ const HudCorner = styled.div<{ $pos: 'tl' | 'tr' | 'bl' | 'br' }>`
 const Content = styled.div<{ $leaving?: boolean }>`
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   ${({ $leaving }) => $leaving && css`animation: ${exitFade} 0.35s ease forwards;`}
 `;
 
@@ -193,6 +196,8 @@ const MainContent = styled.main`
   margin: 0 auto;
   padding: 24px 16px 48px;
   animation: ${enterUp} 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  flex: 1;
+  width: 100%;
 `;
 
 const SearchCard = styled.div`

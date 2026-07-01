@@ -11,6 +11,7 @@ export const GlobalStyle = createGlobalStyle`
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: ${({ theme }) => theme.colors.heroTitle} ${({ theme }) => theme.colors.heroBg};
+    background-color: ${({ theme }) => theme.colors.heroBg};
   }
 
   ::-webkit-scrollbar {

@@ -162,8 +162,35 @@ const ErrorMsg = styled.p`
 const Footer = styled.div`
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding-top: 4px;
+`;
+
+const FooterActions = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const RandomButton = styled.button`
+  padding: 10px 16px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  border: 1.5px dashed ${({ theme }) => theme.colors.primary};
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.surface};
+    background: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.primary};
+    border-style: solid;
+  }
 `;
 
 const CancelButton = styled.button`
@@ -229,6 +256,35 @@ const RequiredNote = styled.p`
 `;
 
 const AVATAR_SEEDS = ['Luna', 'Felix', 'Nova', 'Zoe', 'Max', 'Ivy', 'Ace', 'Rio', 'Sam', 'Mia', 'Rex', 'Leo'];
+
+const RANDOM_NAMES = ['Ana Silva', 'Bruno Costa', 'Carla Mendes', 'Diego Rocha', 'Elena Souza', 'Felipe Lima', 'Gabriela Nunes', 'Hugo Ferreira'];
+const RANDOM_DOMAINS = ['gmail.com', 'outlook.com', 'yahoo.com', 'hotmail.com'];
+const RANDOM_STREETS = ['Rua das Flores', 'Av. Paulista', 'Rua do Comércio', 'Av. Brasil', 'Rua XV de Novembro'];
+const RANDOM_CITIES = ['São Paulo', 'Rio de Janeiro', 'Curitiba', 'Belo Horizonte', 'Porto Alegre'];
+const RANDOM_COMPANIES = ['Tech Solutions', 'Inova Corp', 'Digital Hub', 'Code Factory', 'Web Masters'];
+const RANDOM_SITES = ['techsolutions.io', 'inovacorp.com.br', 'digitalhub.dev', 'codefactory.io'];
+
+function randomFrom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateRandomData(): Partial<NewUserData> {
+  const name = randomFrom(RANDOM_NAMES);
+  const slug = name.toLowerCase().replace(/\s+/g, '.');
+  const digits = () => String(Math.floor(Math.random() * 90000) + 10000);
+  return {
+    name,
+    email: `${slug}@${randomFrom(RANDOM_DOMAINS)}`,
+    phone: `(${Math.floor(Math.random() * 90) + 10}) 9${digits()}-${digits().slice(0, 4)}`,
+    website: randomFrom(RANDOM_SITES),
+    street: randomFrom(RANDOM_STREETS),
+    suite: `Nº ${Math.floor(Math.random() * 900) + 100}`,
+    zipcode: `${digits()}-${String(Math.floor(Math.random() * 900) + 100)}`,
+    city: randomFrom(RANDOM_CITIES),
+    company: randomFrom(RANDOM_COMPANIES),
+    avatarSeed: randomFrom(AVATAR_SEEDS),
+  };
+}
 
 const AvatarPickerLabel = styled.p`
   font-size: 10px;
@@ -500,10 +556,20 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
           {apiError && <ErrorMsg>{apiError}</ErrorMsg>}
 
           <Footer>
-            <CancelButton type="button" onClick={onClose}>Cancelar</CancelButton>
-            <SubmitButton type="submit" disabled={submitting}>
-              {submitting ? 'Criando...' : 'Criar usuário'}
-            </SubmitButton>
+            <RandomButton type="button" onClick={() => {
+              const data = generateRandomData();
+              setForm((prev) => ({ ...prev, ...data }));
+              setErrors({});
+              setTouched({});
+            }}>
+              ↺ aleatório
+            </RandomButton>
+            <FooterActions>
+              <CancelButton type="button" onClick={onClose}>Cancelar</CancelButton>
+              <SubmitButton type="submit" disabled={submitting}>
+                {submitting ? 'Criando...' : 'Criar usuário'}
+              </SubmitButton>
+            </FooterActions>
           </Footer>
 
           <ApiNote>Os dados são enviados ao JSONPlaceholder e adicionados localmente.</ApiNote>
