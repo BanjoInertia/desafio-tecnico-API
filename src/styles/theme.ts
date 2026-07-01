@@ -31,7 +31,7 @@ export const lightTheme = {
     skeletonBase: '#E0F5E8',
     skeletonShimmer: '#F0FFF5',
     overlay: 'rgba(0, 8, 3, 0.78)',
-    particleColors: ['#00C864', '#00E87A', '#007A42', '#009B50', '#00FF87'],
+    particleColors: ['#005C30', '#007A42', '#009B50', '#003D20', '#006438'],
   },
 };
 

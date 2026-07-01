@@ -13,8 +13,8 @@ const AVATAR_COLORS = [
   '#ADFF2F', '#FF6EC7',
 ];
 
-function getDiceBearUrl(name: string) {
-  return `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(name)}&backgroundColor=transparent`;
+function getDiceBearUrl(seed: string) {
+  return `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}&backgroundColor=transparent`;
 }
 
 const Card = styled.button<{ $index: number }>`
@@ -34,6 +34,8 @@ const Card = styled.button<{ $index: number }>`
   &:hover {
     box-shadow: ${({ theme }) => theme.colors.cardShadowHover};
     transform: translate(-2px, -2px);
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.skeletonBase};
   }
 
   &:active {
@@ -46,30 +48,40 @@ const CardTitleBar = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 9px 16px;
   border-bottom: 1.5px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.pageBg};
+  transition: border-color 0.2s, background 0.2s;
+
+  ${Card}:hover & {
+    border-bottom-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.toggleBg};
+  }
 `;
 
 const Dot = styled.span<{ $color: string }>`
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: ${({ $color }) => $color};
   flex-shrink: 0;
 `;
 
 const TitleBarPath = styled.span`
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.textMuted};
   letter-spacing: 0.04em;
   margin-left: 4px;
   flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const LocalBadge = styled.span`
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: ${({ theme }) => theme.colors.primary};
@@ -83,14 +95,14 @@ const LocalBadge = styled.span`
 const CardBody = styled.div`
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 16px;
+  padding: 15px 15px;
 `;
 
 const AvatarWrapper = styled.div<{ $color: string }>`
-  width: 44px;
-  height: 44px;
-  border-radius: 4px;
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
   border: 1.5px solid ${({ theme }) => theme.colors.border};
   background: ${({ $color }) => $color}14;
   display: flex;
@@ -108,7 +120,7 @@ const AvatarImg = styled.img`
 
 const AvatarFallback = styled.span<{ $color: string }>`
   font-weight: 800;
-  font-size: 14px;
+  font-size: 17px;
   color: ${({ $color }) => $color};
 `;
 
@@ -119,7 +131,7 @@ const Info = styled.div`
 
 const Name = styled.p`
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   color: ${({ theme }) => theme.colors.text};
   white-space: nowrap;
   overflow: hidden;
@@ -128,7 +140,7 @@ const Name = styled.p`
 `;
 
 const Email = styled.p`
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   color: ${({ theme }) => theme.colors.textMuted};
   white-space: nowrap;
@@ -138,7 +150,7 @@ const Email = styled.p`
 `;
 
 const Prompt = styled.div`
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textMuted};
   flex-shrink: 0;
@@ -185,7 +197,7 @@ export function UserCard({ user, index, isLocal = false, onClick }: UserCardProp
             <AvatarFallback $color={color}>{initials}</AvatarFallback>
           ) : (
             <AvatarImg
-              src={getDiceBearUrl(user.name)}
+              src={getDiceBearUrl(user.avatarSeed || user.name)}
               alt={user.name}
               onError={() => setImgError(true)}
             />

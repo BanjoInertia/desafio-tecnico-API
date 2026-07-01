@@ -41,4 +41,19 @@ describe('UserCard', () => {
     await user.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledWith(mockUser);
   });
+
+  it('exibe badge LOCAL quando isLocal é true', () => {
+    render(<UserCard user={mockUser} index={0} isLocal onClick={() => {}} />);
+    expect(screen.getByText('LOCAL')).toBeInTheDocument();
+  });
+
+  it('não exibe badge LOCAL para usuários da API', () => {
+    render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
+    expect(screen.queryByText('LOCAL')).not.toBeInTheDocument();
+  });
+
+  it('exibe o path do usuário na barra de título', () => {
+    render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
+    expect(screen.getByText('~/users/bret')).toBeInTheDocument();
+  });
 });

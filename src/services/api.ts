@@ -12,8 +12,13 @@ export interface NewUserData {
   name: string;
   email: string;
   phone: string;
-  company: string;
+  website: string;
+  street: string;
+  suite: string;
+  zipcode: string;
   city: string;
+  company: string;
+  avatarSeed?: string;
 }
 
 
@@ -26,13 +31,13 @@ export async function createUser(data: NewUserData): Promise<User> {
       email: data.email,
       phone: data.phone,
       username: data.name.toLowerCase().replace(/\s+/g, '.'),
-      website: '',
-      address: { street: '', suite: '', city: data.city, zipcode: '' },
+      website: data.website,
+      address: { street: data.street, suite: data.suite, city: data.city, zipcode: data.zipcode },
       company: { name: data.company, catchPhrase: '', bs: '' },
     }),
   });
   if (!response.ok) throw new Error('Falha ao criar usuário');
   const created = await response.json();
   // JSONPlaceholder always returns id 11 — use a unique local id instead
-  return { ...created, id: Date.now() };
+  return { ...created, id: Date.now(), avatarSeed: data.avatarSeed };
 }

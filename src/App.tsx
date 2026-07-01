@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import styled, { useTheme } from 'styled-components';
+import styled, { useTheme, keyframes, css } from 'styled-components';
 import { useUsers } from './hooks/useUsers';
 import { useDebounce } from './hooks/useDebounce';
 import { useTheme as useAppTheme } from './context/ThemeContext';
@@ -17,11 +17,24 @@ import type { User } from './types/user';
 
 type SortOption = 'default' | 'name_asc' | 'name_desc' | 'company_asc';
 
+const enterDown = keyframes`
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const enterUp = keyframes`
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const exitFade = keyframes`
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(16px); }
+`;
+
 const PageWrapper = styled.div<{ $visible: boolean }>`
   min-height: 100vh;
   position: relative;
-  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
-  transition: opacity 0.5s ease 0.1s;
 `;
 
 const cornerSize = '22px';
@@ -68,9 +81,10 @@ const HudCorner = styled.div<{ $pos: 'tl' | 'tr' | 'bl' | 'br' }>`
   }
 `;
 
-const Content = styled.div`
+const Content = styled.div<{ $leaving?: boolean }>`
   position: relative;
   z-index: 1;
+  ${({ $leaving }) => $leaving && css`animation: ${exitFade} 0.35s ease forwards;`}
 `;
 
 const Hero = styled.header`
@@ -79,6 +93,7 @@ const Hero = styled.header`
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  animation: ${enterDown} 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 `;
 
 const HeroPattern = styled.div`
@@ -100,6 +115,37 @@ const HeroInner = styled.div`
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+`;
+
+const HeroLeft = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const BackButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1.5px solid ${({ theme }) => theme.colors.toggleBorder};
+  color: ${({ theme }) => theme.colors.heroSubtitle};
+  font-size: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: fit-content;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.heroTitle};
+    color: ${({ theme }) => theme.colors.heroTitle};
+    background: ${({ theme }) => theme.colors.toggleBg};
+  }
 `;
 
 const HeroText = styled.div``;
@@ -146,6 +192,7 @@ const MainContent = styled.main`
   max-width: 900px;
   margin: 0 auto;
   padding: 24px 16px 48px;
+  animation: ${enterUp} 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 `;
 
 const SearchCard = styled.div`
@@ -175,7 +222,7 @@ const FilterRow = styled.div`
 `;
 
 const FilterLabel = styled.span`
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -188,8 +235,8 @@ const FilterSelect = styled.select`
   color: ${({ theme }) => theme.colors.text};
   border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: 4px;
-  padding: 5px 8px;
-  font-size: 11px;
+  padding: 7px 10px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -248,6 +295,59 @@ const UserGrid = styled.div`
   }
 `;
 
+const Footer = styled.footer`
+  background: ${({ theme }) => theme.colors.heroBg};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 24px;
+`;
+
+const FooterInner = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+`;
+
+const FooterLeft = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const FooterPrompt = styled.p`
+  font-size: 11px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.heroSubtitle};
+  margin: 0;
+  span { color: ${({ theme }) => theme.colors.heroTitle}; }
+`;
+
+const FooterSub = styled.p`
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 0;
+  letter-spacing: 0.04em;
+`;
+
+const FooterTags = styled.div`
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+`;
+
+const FooterTag = styled.span`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: ${({ theme }) => theme.colors.textMuted};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 3px 8px;
+  border-radius: 3px;
+`;
+
 const Empty = styled.div`
   text-align: center;
   padding: 64px 16px;
@@ -287,7 +387,8 @@ export default function App() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [splashDone, setSplashDone] = useState(false);
+  const [splashMode, setSplashMode] = useState<'boot' | 'return' | 'done'>('boot');
+  const [contentLeaving, setContentLeaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [filterCompany, setFilterCompany] = useState('');
@@ -332,22 +433,28 @@ export default function App() {
 
   return (
     <>
-      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-      <PageWrapper $visible={splashDone}>
+      {splashMode !== 'done' && <SplashScreen mode={splashMode} onDone={() => setSplashMode('done')} />}
+      <PageWrapper $visible={splashMode === 'done'}>
       <HudCorner $pos="tl" />
       <HudCorner $pos="tr" />
       <HudCorner $pos="bl" />
       <HudCorner $pos="br" />
       <ParticleCanvas colors={theme.colors.particleColors} />
 
-      <Content>
+      {splashMode === 'done' && <Content $leaving={contentLeaving}>
         <Hero>
           <HeroPattern />
           <HeroInner>
-            <HeroText>
-              <HeroLabel>root@jsonplaceholder:~$ ./load_users</HeroLabel>
-              <HeroTitle>Usuários</HeroTitle>
-            </HeroText>
+            <HeroLeft>
+              <BackButton onClick={() => {
+                setContentLeaving(true);
+                setTimeout(() => { setContentLeaving(false); setSplashMode('return'); }, 350);
+              }}>← início</BackButton>
+              <HeroText>
+                <HeroLabel>root@jsonplaceholder:~$ ./load_users</HeroLabel>
+                <HeroTitle>Usuários</HeroTitle>
+              </HeroText>
+            </HeroLeft>
             <ThemeToggleButton />
           </HeroInner>
         </Hero>
@@ -388,7 +495,7 @@ export default function App() {
           {error && <ErrorState message={error} onRetry={() => window.location.reload()} />}
 
           {!loading && !error && (
-            <UserGrid>
+            <UserGrid key={`${debouncedSearch}-${filterCompany}-${filterCity}-${sortBy}`}>
               {filtered.length === 0 ? (
                 <Empty>
                   <EmptyEmoji>🔍</EmptyEmoji>
@@ -409,7 +516,24 @@ export default function App() {
             </UserGrid>
           )}
         </MainContent>
-      </Content>
+
+        <Footer>
+          <FooterInner>
+            <FooterLeft>
+              <FooterPrompt>
+                <span>root@jsonplaceholder</span>:~$ exit
+              </FooterPrompt>
+              <FooterSub>// todos os usuários carregados</FooterSub>
+            </FooterLeft>
+            <FooterTags>
+              <FooterTag>React</FooterTag>
+              <FooterTag>TypeScript</FooterTag>
+              <FooterTag>Vite</FooterTag>
+              <FooterTag>Styled Components</FooterTag>
+            </FooterTags>
+          </FooterInner>
+        </Footer>
+      </Content>}
 
       {selectedUser && (
         <UserModal

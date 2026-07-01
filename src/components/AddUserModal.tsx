@@ -218,6 +218,54 @@ const ApiNote = styled.p`
   margin: 0;
 `;
 
+const RequiredNote = styled.p`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: -4px 0 0;
+
+  span {
+    color: #ef4444;
+  }
+`;
+
+const AVATAR_SEEDS = ['Luna', 'Felix', 'Nova', 'Zoe', 'Max', 'Ivy', 'Ace', 'Rio', 'Sam', 'Mia', 'Rex', 'Leo'];
+
+const AvatarPickerLabel = styled.p`
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0 0 8px;
+`;
+
+const AvatarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+`;
+
+const AvatarOption = styled.button<{ $selected: boolean }>`
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 2px solid ${({ $selected, theme }) => ($selected ? theme.colors.heroTitle : theme.colors.border)};
+  background: ${({ $selected, theme }) => ($selected ? theme.colors.toggleBg : theme.colors.surface)};
+  padding: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: ${({ $selected, theme }) => ($selected ? `0 0 8px ${theme.colors.heroTitle}` : 'none')};
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.heroTitle};
+  }
+`;
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function formatPhone(value: string): string {
@@ -226,6 +274,12 @@ function formatPhone(value: string): string {
   if (digits.length <= 2) return `(${digits}`;
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function formatZipcode(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
 }
 
 interface FormErrors {
@@ -244,7 +298,8 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
   useBodyScrollLock();
   const dialogRef = useFocusTrap();
   const [form, setForm] = useState<NewUserData>({
-    name: '', email: '', phone: '', company: '', city: '',
+    name: '', email: '', phone: '', website: '', street: '', suite: '', zipcode: '', city: '', company: '',
+    avatarSeed: AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)],
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormErrors, boolean>>>({});
@@ -277,7 +332,7 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
   }
 
   function handleChange(field: keyof NewUserData, value: string) {
-    const next = field === 'phone' ? formatPhone(value) : value;
+    const next = field === 'phone' ? formatPhone(value) : field === 'zipcode' ? formatZipcode(value) : value;
     setForm((prev) => ({ ...prev, [field]: next }));
     if (touched[field as keyof FormErrors]) {
       const error = validateField(field as keyof FormErrors, next);
@@ -322,6 +377,7 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
         </Header>
 
         <Body onSubmit={handleSubmit} noValidate>
+          <RequiredNote><span>*</span> campos obrigatórios</RequiredNote>
           <Row>
             <Field>
               <Label>Nome <Required>*</Required></Label>
@@ -361,6 +417,47 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
             </Field>
 
             <Field>
+              <Label>Website</Label>
+              <Input
+                placeholder="exemplo.com"
+                value={form.website}
+                onChange={(e) => handleChange('website', e.target.value)}
+              />
+            </Field>
+          </Row>
+
+          <Row>
+            <Field>
+              <Label>Rua</Label>
+              <Input
+                placeholder="Nome da rua"
+                value={form.street}
+                onChange={(e) => handleChange('street', e.target.value)}
+              />
+            </Field>
+
+            <Field>
+              <Label>Complemento</Label>
+              <Input
+                placeholder="Apto, sala..."
+                value={form.suite}
+                onChange={(e) => handleChange('suite', e.target.value)}
+              />
+            </Field>
+          </Row>
+
+          <Row>
+            <Field>
+              <Label>CEP</Label>
+              <Input
+                placeholder="00000-000"
+                value={form.zipcode}
+                onChange={(e) => handleChange('zipcode', e.target.value)}
+                inputMode="numeric"
+              />
+            </Field>
+
+            <Field>
               <Label>Cidade</Label>
               <Combobox
                 value={form.city}
@@ -379,6 +476,25 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
               options={companies}
               placeholder="Selecione ou digite"
             />
+          </Field>
+
+          <Field>
+            <AvatarPickerLabel>Avatar</AvatarPickerLabel>
+            <AvatarGrid>
+              {AVATAR_SEEDS.map((seed) => (
+                <AvatarOption
+                  key={seed}
+                  type="button"
+                  $selected={form.avatarSeed === seed}
+                  onClick={() => setForm((prev) => ({ ...prev, avatarSeed: seed }))}
+                >
+                  <img
+                    src={`https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=transparent`}
+                    alt={seed}
+                  />
+                </AvatarOption>
+              ))}
+            </AvatarGrid>
           </Field>
 
           {apiError && <ErrorMsg>{apiError}</ErrorMsg>}

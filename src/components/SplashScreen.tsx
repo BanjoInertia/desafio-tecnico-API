@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { ParticleCanvas } from './ParticleCanvas';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 type Phase = 'entering' | 'ready' | 'leaving';
+type Mode = 'boot' | 'return';
 
 const PARTICLE_COLORS = ['#00FF87', '#00CFFF', '#FF00CC', '#FFD700', '#FF4488'];
 
 const slideUp = keyframes`
   from { transform: translateY(0); }
   to   { transform: translateY(-100%); }
+`;
+
+const slideDown = keyframes`
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
 `;
 
 const popUp = keyframes`
@@ -31,7 +38,7 @@ const scanline = keyframes`
   to   { transform: translateY(100vh); }
 `;
 
-const Wrapper = styled.div<{ $phase: Phase }>`
+const Wrapper = styled.div<{ $phase: Phase; $mode: Mode }>`
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -43,9 +50,11 @@ const Wrapper = styled.div<{ $phase: Phase }>`
 
   ${({ $phase }) =>
     $phase === 'leaving' &&
-    css`
-      animation: ${slideUp} 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;
-    `}
+    css`animation: ${slideUp} 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;`}
+
+  ${({ $phase, $mode }) =>
+    $phase !== 'leaving' && $mode === 'return' &&
+    css`animation: ${slideDown} 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;`}
 `;
 
 const GridPattern = styled.div`
@@ -183,15 +192,22 @@ const Spinner = styled.span`
 
 interface SplashScreenProps {
   onDone: () => void;
+  mode?: Mode;
 }
 
-export function SplashScreen({ onDone }: SplashScreenProps) {
-  const [phase, setPhase] = useState<Phase>('entering');
+export function SplashScreen({ onDone, mode = 'boot' }: SplashScreenProps) {
+  const [phase, setPhase] = useState<Phase>(mode === 'return' ? 'ready' : 'entering');
+  const [textReady, setTextReady] = useState(mode !== 'return');
+  useBodyScrollLock({ hideScrollbar: true });
 
   useEffect(() => {
+    if (mode === 'return') {
+      const timer = setTimeout(() => setTextReady(true), 700);
+      return () => clearTimeout(timer);
+    }
     const timer = setTimeout(() => setPhase('ready'), 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [mode]);
 
   function handleLeave() {
     setPhase('leaving');
@@ -199,31 +215,33 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
   }
 
   return (
-    <Wrapper $phase={phase}>
+    <Wrapper $phase={phase} $mode={mode}>
       <ParticleCanvas colors={PARTICLE_COLORS} />
       <GridPattern />
       <Scanline />
 
-      <Inner>
-        <Prompt>
-          <span>root@jsonplaceholder</span>:~$ ./load_users.sh
-        </Prompt>
-        <Title>
-          Usuários<Cursor />
-        </Title>
-        <Subtitle>// JSONPlaceholder API — diretório de usuários</Subtitle>
+      {textReady && (
+        <Inner>
+          <Prompt>
+            <span>root@jsonplaceholder</span>:~$ ./load_users.sh
+          </Prompt>
+          <Title>
+            Usuários<Cursor />
+          </Title>
+          <Subtitle>// JSONPlaceholder API — diretório de usuários</Subtitle>
 
-        <Actions>
-          {phase === 'ready' ? (
-            <EnterButton onClick={handleLeave}>{'> ENTRAR'}</EnterButton>
-          ) : (
-            <LoadingLine>
-              <Spinner />
-              inicializando conexão...
-            </LoadingLine>
-          )}
-        </Actions>
-      </Inner>
+          <Actions>
+            {phase === 'ready' ? (
+              <EnterButton onClick={handleLeave}>{'> ENTRAR'}</EnterButton>
+            ) : (
+              <LoadingLine>
+                <Spinner />
+                inicializando conexão...
+              </LoadingLine>
+            )}
+          </Actions>
+        </Inner>
+      )}
     </Wrapper>
   );
 }

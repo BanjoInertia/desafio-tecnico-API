@@ -7,6 +7,31 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
   }
 
+  html {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: ${({ theme }) => theme.colors.heroTitle} ${({ theme }) => theme.colors.heroBg};
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.heroBg};
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.heroTitle};
+    border-radius: 0;
+    box-shadow: 0 0 6px ${({ theme }) => theme.colors.heroTitle};
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    box-shadow: 0 0 10px ${({ theme }) => theme.colors.heroTitle};
+  }
+
   body {
     font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
     background-color: ${({ theme }) => theme.colors.pageBg};
