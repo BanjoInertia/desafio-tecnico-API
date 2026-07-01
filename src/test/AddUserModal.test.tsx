@@ -82,4 +82,42 @@ describe('AddUserModal', () => {
     expect(screen.getByText('Acme Corp')).toBeInTheDocument();
     expect(screen.getByText('Globo')).toBeInTheDocument();
   });
+
+  it('pré-preenche o formulário com initialData no modo edição', () => {
+    const initialData = {
+      id: 9999,
+      name: 'Carla Mendes',
+      username: 'carla.mendes',
+      email: 'carla@email.com',
+      phone: '(11) 99999-9999',
+      website: 'carla.dev',
+      address: { street: 'Rua A', suite: 'Apto 1', city: 'São Paulo', zipcode: '01310-100' },
+      company: { name: 'Tech Co', catchPhrase: '', bs: '' },
+    };
+    render(<AddUserModal {...defaultProps} initialData={initialData} onEdit={vi.fn()} />);
+    expect(screen.getByDisplayValue('Carla Mendes')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('carla@email.com')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Editar Usuário' })).toBeInTheDocument();
+  });
+
+  it('chama onEdit com dados atualizados ao salvar no modo edição', async () => {
+    const user = userEvent.setup();
+    const handleEdit = vi.fn();
+    const initialData = {
+      id: 9999,
+      name: 'Carla Mendes',
+      username: 'carla.mendes',
+      email: 'carla@email.com',
+      phone: '',
+      website: '',
+      address: { street: '', suite: '', city: '', zipcode: '' },
+      company: { name: '', catchPhrase: '', bs: '' },
+    };
+    render(<AddUserModal {...defaultProps} initialData={initialData} onEdit={handleEdit} />);
+    const nameInput = screen.getByDisplayValue('Carla Mendes');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Carla Atualizada');
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    expect(handleEdit).toHaveBeenCalledWith(expect.objectContaining({ name: 'Carla Atualizada', id: 9999 }));
+  });
 });

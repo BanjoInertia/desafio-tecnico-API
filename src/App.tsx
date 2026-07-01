@@ -464,7 +464,7 @@ function ThemeToggleButton() {
 }
 
 export default function App() {
-  const { users, loading, error, addUser, removeUser, isLocalUser } = useUsers();
+  const { users, loading, error, addUser, removeUser, updateUser, isLocalUser } = useUsers();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
@@ -472,6 +472,7 @@ export default function App() {
   const [splashMode, setSplashMode] = useState<'boot' | 'return' | 'done'>('boot');
   const [contentLeaving, setContentLeaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [filterCompany, setFilterCompany] = useState('');
   const [filterCity, setFilterCity] = useState('');
@@ -512,6 +513,11 @@ export default function App() {
     removeUser(id);
     setSelectedUser(null);
     showToast('Usuário removido', 'error');
+  }
+
+  function handleEdit(user: User) {
+    updateUser(user);
+    showToast('Usuário atualizado');
   }
 
   return (
@@ -641,6 +647,7 @@ export default function App() {
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
           onDelete={handleDelete}
+          onEdit={() => { setEditingUser(selectedUser); setSelectedUser(null); }}
           canDelete={isLocalUser(selectedUser.id)}
         />
       )}
@@ -648,6 +655,16 @@ export default function App() {
         <AddUserModal
           onClose={() => setShowAddModal(false)}
           onAdd={handleAdd}
+          companies={companies}
+          cities={cities}
+        />
+      )}
+      {editingUser && (
+        <AddUserModal
+          onClose={() => setEditingUser(null)}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          initialData={editingUser}
           companies={companies}
           cities={cities}
         />

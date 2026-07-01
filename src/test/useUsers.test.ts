@@ -97,4 +97,22 @@ describe('useUsers', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeTruthy();
   });
+
+  it('updateUser atualiza o usuário local na lista', async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.addUser(mockLocalUser));
+    act(() => result.current.updateUser({ ...mockLocalUser, name: 'Updated Name' }));
+    const updated = result.current.users.find((u) => u.id === mockLocalUser.id);
+    expect(updated?.name).toBe('Updated Name');
+  });
+
+  it('updateUser persiste a alteração no localStorage', async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.addUser(mockLocalUser));
+    act(() => result.current.updateUser({ ...mockLocalUser, name: 'Updated Name' }));
+    const stored = JSON.parse(localStorage.getItem('local_users') || '[]');
+    expect(stored[0].name).toBe('Updated Name');
+  });
 });

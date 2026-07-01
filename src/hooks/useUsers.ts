@@ -19,6 +19,7 @@ interface UseUsersResult {
   error: string | null;
   addUser: (user: User) => void;
   removeUser: (id: number) => void;
+  updateUser: (user: User) => void;
   isLocalUser: (id: number) => boolean;
 }
 
@@ -47,9 +48,13 @@ export function useUsers(): UseUsersResult {
     setLocal((prev) => prev.filter((u) => u.id !== id));
   }
 
+  function updateUser(updated: User) {
+    setLocal((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+  }
+
   function isLocalUser(id: number) {
     return local.some((u) => u.id === id);
   }
 
-  return { users: [...local, ...fetched], loading, error, addUser, removeUser, isLocalUser };
+  return { users: [...local, ...fetched], loading, error, addUser, removeUser, updateUser, isLocalUser };
 }

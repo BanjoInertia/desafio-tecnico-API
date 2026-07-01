@@ -18,6 +18,7 @@ const defaultProps = {
   user: mockUser,
   onClose: () => {},
   onDelete: () => {},
+  onEdit: () => {},
 };
 
 describe('UserModal', () => {
@@ -60,6 +61,15 @@ describe('UserModal', () => {
   it('não exibe botão de remover para usuários da API (canDelete ausente)', () => {
     render(<UserModal {...defaultProps} />);
     expect(screen.queryByRole('button', { name: /remover usuário/i })).not.toBeInTheDocument();
+  });
+
+  it('chama onEdit ao clicar em editar usuário (canDelete=true)', async () => {
+    const user = userEvent.setup();
+    const handleEdit = vi.fn();
+    render(<UserModal {...defaultProps} onEdit={handleEdit} canDelete />);
+
+    await user.click(screen.getByRole('button', { name: /editar usuário/i }));
+    expect(handleEdit).toHaveBeenCalled();
   });
 
   it('exige confirmação antes de chamar onDelete', async () => {

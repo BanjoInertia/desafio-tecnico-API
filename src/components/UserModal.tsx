@@ -323,22 +323,45 @@ const ConfirmDeleteButton = styled.button`
   }
 `;
 
+const ActionRow = styled.div`
+  display: flex;
+  border-top: 2px solid ${({ theme }) => theme.colors.border};
+`;
+
+const EditButton = styled.button`
+  flex: 1;
+  padding: 13px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.cardTitleColor};
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  border-right: 1px solid ${({ theme }) => theme.colors.border};
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  font-family: inherit;
+  transition: background 0.15s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.editHoverBg};
+  }
+`;
+
 const DeleteButton = styled.button`
-  width: 100%;
+  flex: 1;
   padding: 13px;
   background: transparent;
   color: #ef4444;
   font-size: 13px;
   font-weight: 800;
   border: none;
-  border-top: 2px solid ${({ theme }) => theme.colors.border};
   cursor: pointer;
   letter-spacing: 0.03em;
   font-family: inherit;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s;
 
   &:hover {
-    background: rgba(239, 68, 68, 0.08);
+    background: rgba(239, 68, 68, 0.22);
   }
 `;
 
@@ -372,10 +395,11 @@ interface UserModalProps {
   user: User;
   onClose: () => void;
   onDelete: (id: number) => void;
+  onEdit: () => void;
   canDelete?: boolean;
 }
 
-export function UserModal({ user, onClose, onDelete, canDelete = false }: UserModalProps) {
+export function UserModal({ user, onClose, onDelete, onEdit, canDelete = false }: UserModalProps) {
   useBodyScrollLock();
   const dialogRef = useFocusTrap();
   const [imgError, setImgError] = useState(false);
@@ -490,9 +514,10 @@ export function UserModal({ user, onClose, onDelete, canDelete = false }: UserMo
                 </ConfirmActions>
               </ConfirmRow>
             ) : (
-              <DeleteButton onClick={() => setConfirmDelete(true)}>
-                🗑 Remover usuário
-              </DeleteButton>
+              <ActionRow>
+                <EditButton onClick={onEdit}>✏ Editar usuário</EditButton>
+                <DeleteButton onClick={() => setConfirmDelete(true)}>🗑 Remover usuário</DeleteButton>
+              </ActionRow>
             )
           )}
         </Body>

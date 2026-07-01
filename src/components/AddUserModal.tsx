@@ -366,17 +366,33 @@ interface FormErrors {
 interface AddUserModalProps {
   onClose: () => void;
   onAdd: (user: User) => void;
+  onEdit?: (user: User) => void;
+  initialData?: User;
   companies?: string[];
   cities?: string[];
 }
 
-export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: AddUserModalProps) {
+export function AddUserModal({ onClose, onAdd, onEdit, initialData, companies = [], cities = [] }: AddUserModalProps) {
   useBodyScrollLock();
   const dialogRef = useFocusTrap();
-  const [form, setForm] = useState<NewUserData>({
-    name: '', email: '', phone: '', website: '', street: '', suite: '', zipcode: '', city: '', company: '',
-    avatarSeed: AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)],
-  });
+  const isEditing = !!initialData;
+  const [form, setForm] = useState<NewUserData>(
+    initialData ? {
+      name: initialData.name,
+      email: initialData.email,
+      phone: initialData.phone,
+      website: initialData.website,
+      street: initialData.address.street,
+      suite: initialData.address.suite,
+      zipcode: initialData.address.zipcode,
+      city: initialData.address.city,
+      company: initialData.company.name,
+      avatarSeed: initialData.avatarSeed ?? AVATAR_SEEDS[0],
+    } : {
+      name: '', email: '', phone: '', website: '', street: '', suite: '', zipcode: '', city: '', company: '',
+      avatarSeed: AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)],
+    }
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormErrors, boolean>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -430,6 +446,23 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
     e.preventDefault();
     if (!validate()) return;
 
+    if (isEditing && initialData) {
+      const updated: User = {
+        ...initialData,
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        website: form.website,
+        username: form.name.toLowerCase().replace(/\s+/g, '.'),
+        address: { street: form.street, suite: form.suite, city: form.city, zipcode: form.zipcode },
+        company: { ...initialData.company, name: form.company },
+        avatarSeed: form.avatarSeed,
+      };
+      onEdit!(updated);
+      onClose();
+      return;
+    }
+
     setSubmitting(true);
     setApiError(null);
     try {
@@ -448,7 +481,7 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
       <Dialog ref={dialogRef}>
         <Header>
           <HeaderPattern />
-          <HeaderTitle>Novo Usuário</HeaderTitle>
+          <HeaderTitle>{isEditing ? 'Editar Usuário' : 'Novo Usuário'}</HeaderTitle>
           <CloseButton onClick={onClose} aria-label="Fechar">✕</CloseButton>
         </Header>
 
@@ -587,7 +620,7 @@ export function AddUserModal({ onClose, onAdd, companies = [], cities = [] }: Ad
             <FooterActions>
               <CancelButton type="button" onClick={onClose}>Cancelar</CancelButton>
               <SubmitButton type="submit" disabled={submitting}>
-                {submitting ? 'Criando...' : 'Criar usuário'}
+                {isEditing ? 'Salvar alterações' : submitting ? 'Criando...' : 'Criar usuário'}
               </SubmitButton>
             </FooterActions>
           </Footer>
