@@ -124,6 +124,11 @@ const HeroInner = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 `;
 
 const HeroLeft = styled.div`
@@ -169,7 +174,7 @@ const HeroLabel = styled.p`
 `;
 
 const HeroTitle = styled.h1`
-  font-size: 42px;
+  font-size: clamp(26px, 7vw, 42px);
   font-weight: 900;
   color: ${({ theme }) => theme.colors.heroTitle};
   margin: 0;
@@ -226,6 +231,10 @@ const SearchRow = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+  }
 `;
 
 const FilterRow = styled.div`
@@ -236,6 +245,25 @@ const FilterRow = styled.div`
   padding-top: 10px;
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 8px;
+  }
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 `;
 
 const FilterLabel = styled.span`
@@ -250,6 +278,12 @@ const FilterLabel = styled.span`
 const ResetButton = styled.button<{ $active: boolean }>`
   margin-left: auto;
   padding: 7px 14px;
+
+  @media (max-width: 480px) {
+    margin-left: 0;
+    align-self: end;
+    justify-self: end;
+  }
   background: ${({ $active, theme }) => $active ? theme.colors.filterActiveBg : 'transparent'};
   color: ${({ $active, theme }) => $active ? theme.colors.filterActiveColor : theme.colors.textMuted};
   font-size: 11px;
@@ -519,29 +553,35 @@ export default function App() {
             </SearchRow>
             {!loading && !error && (
               <FilterRow>
-                <FilterLabel>ordenar</FilterLabel>
-                <SelectDropdown
-                  value={sortBy}
-                  onChange={(v) => setSortBy(v as SortOption)}
-                  options={[
-                    { label: 'Padrão', value: 'default' },
-                    { label: 'Nome A→Z', value: 'name_asc' },
-                    { label: 'Nome Z→A', value: 'name_desc' },
-                    { label: 'Empresa A→Z', value: 'company_asc' },
-                  ]}
-                />
-                <FilterLabel>empresa</FilterLabel>
-                <SelectDropdown
-                  value={filterCompany}
-                  onChange={setFilterCompany}
-                  options={[{ label: 'Todas', value: '' }, ...companies.map(c => ({ label: c, value: c }))]}
-                />
-                <FilterLabel>cidade</FilterLabel>
-                <SelectDropdown
-                  value={filterCity}
-                  onChange={setFilterCity}
-                  options={[{ label: 'Todas', value: '' }, ...cities.map(c => ({ label: c, value: c }))]}
-                />
+                <FilterGroup>
+                  <FilterLabel>ordenar</FilterLabel>
+                  <SelectDropdown
+                    value={sortBy}
+                    onChange={(v) => setSortBy(v as SortOption)}
+                    options={[
+                      { label: 'Padrão', value: 'default' },
+                      { label: 'Nome A→Z', value: 'name_asc' },
+                      { label: 'Nome Z→A', value: 'name_desc' },
+                      { label: 'Empresa A→Z', value: 'company_asc' },
+                    ]}
+                  />
+                </FilterGroup>
+                <FilterGroup>
+                  <FilterLabel>empresa</FilterLabel>
+                  <SelectDropdown
+                    value={filterCompany}
+                    onChange={setFilterCompany}
+                    options={[{ label: 'Todas', value: '' }, ...companies.map(c => ({ label: c, value: c }))]}
+                  />
+                </FilterGroup>
+                <FilterGroup>
+                  <FilterLabel>cidade</FilterLabel>
+                  <SelectDropdown
+                    value={filterCity}
+                    onChange={setFilterCity}
+                    options={[{ label: 'Todas', value: '' }, ...cities.map(c => ({ label: c, value: c }))]}
+                  />
+                </FilterGroup>
                 <ResetButton
                   $active={sortBy !== 'default' || filterCompany !== '' || filterCity !== ''}
                   onClick={() => { setSortBy('default'); setFilterCompany(''); setFilterCity(''); }}

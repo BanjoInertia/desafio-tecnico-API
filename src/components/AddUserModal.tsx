@@ -35,8 +35,13 @@ const Dialog = styled.div`
   box-shadow: ${({ theme }) => theme.colors.modalShadow};
   width: 100%;
   max-width: 480px;
+  display: flex;
+  flex-direction: column;
   animation: ${popIn} 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    max-height: calc(100dvh - 32px);
+  }
 `;
 
 const Header = styled.div`
@@ -96,6 +101,11 @@ const Body = styled.form`
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  @media (max-width: 480px) {
+    overflow-y: auto;
+    flex: 1;
+  }
 `;
 
 const Row = styled.div`
@@ -304,6 +314,11 @@ const AvatarGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
 `;
 
 const AvatarOption = styled.button<{ $selected: boolean }>`

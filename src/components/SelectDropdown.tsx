@@ -3,6 +3,10 @@ import styled from 'styled-components';
 
 const SelectWrapper = styled.div`
   position: relative;
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
 `;
 
 const SelectTrigger = styled.button<{ $open: boolean }>`
@@ -21,6 +25,11 @@ const SelectTrigger = styled.button<{ $open: boolean }>`
   white-space: nowrap;
   text-align: left;
   transition: border-color 0.15s;
+
+  @media (max-width: 480px) {
+    min-width: 0;
+    width: 100%;
+  }
 
   &::after {
     content: '';

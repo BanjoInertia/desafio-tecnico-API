@@ -62,12 +62,16 @@ describe('UserModal', () => {
     expect(screen.queryByRole('button', { name: /remover usuário/i })).not.toBeInTheDocument();
   });
 
-  it('chama onDelete ao clicar em remover usuário (canDelete=true)', async () => {
+  it('exige confirmação antes de chamar onDelete', async () => {
     const user = userEvent.setup();
     const handleDelete = vi.fn();
     render(<UserModal {...defaultProps} onDelete={handleDelete} canDelete />);
 
     await user.click(screen.getByRole('button', { name: /remover usuário/i }));
+    expect(handleDelete).not.toHaveBeenCalled();
+    expect(screen.getByText(/esta ação não pode ser desfeita/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /confirmar/i }));
     expect(handleDelete).toHaveBeenCalledWith(mockUser.id);
   });
 });

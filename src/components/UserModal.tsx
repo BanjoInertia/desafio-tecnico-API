@@ -43,6 +43,10 @@ const ModalHeader = styled.div`
   position: relative;
   overflow: hidden;
   border-bottom: 2px solid ${({ theme }) => theme.colors.border};
+
+  @media (max-width: 480px) {
+    padding: 20px 16px 18px;
+  }
 `;
 
 const HeaderPattern = styled.div`
@@ -108,6 +112,13 @@ const AvatarWrapper = styled.div`
   overflow: hidden;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+  }
 `;
 
 const AvatarImg = styled.img`
@@ -118,13 +129,13 @@ const AvatarImg = styled.img`
 
 const AvatarFallback = styled.span`
   font-weight: 900;
-  font-size: 30px;
+  font-size: clamp(20px, 4vw, 30px);
   color: ${({ theme }) => theme.colors.heroTitle};
 `;
 
 const HeaderName = styled.h2`
   color: ${({ theme }) => theme.colors.heroTitle};
-  font-size: 24px;
+  font-size: clamp(18px, 5vw, 24px);
   font-weight: 900;
   margin: 0;
   letter-spacing: -0.5px;
@@ -181,6 +192,11 @@ const DetailItem = styled.button<{ $clickable?: boolean }>`
   cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
   transition: background 0.15s;
   font-family: inherit;
+
+  @media (max-width: 480px) {
+    padding: 12px 16px;
+    gap: 12px;
+  }
 
   &:last-child {
     border-bottom: none;
@@ -246,6 +262,67 @@ const CopyHint = styled.span`
   transition: color 0.2s;
 `;
 
+const ConfirmRow = styled.div`
+  border-top: 2px solid ${({ theme }) => theme.colors.border};
+  padding: 14px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  @media (max-width: 480px) {
+    padding: 12px 16px;
+  }
+`;
+
+const ConfirmText = styled.p`
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  letter-spacing: 0.02em;
+`;
+
+const ConfirmActions = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const CancelConfirmButton = styled.button`
+  flex: 1;
+  padding: 8px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.toggleBg};
+  }
+`;
+
+const ConfirmDeleteButton = styled.button`
+  flex: 1;
+  padding: 8px;
+  background: transparent;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: inherit;
+  border: 1.5px solid #ef4444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+`;
+
 const DeleteButton = styled.button`
   width: 100%;
   padding: 13px;
@@ -303,6 +380,7 @@ export function UserModal({ user, onClose, onDelete, canDelete = false }: UserMo
   const dialogRef = useFocusTrap();
   const [imgError, setImgError] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -403,9 +481,19 @@ export function UserModal({ user, onClose, onDelete, canDelete = false }: UserMo
             icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
           />
           {canDelete && (
-            <DeleteButton onClick={() => { onDelete(user.id); onClose(); }}>
-              🗑 Remover usuário
-            </DeleteButton>
+            confirmDelete ? (
+              <ConfirmRow>
+                <ConfirmText>Tem certeza? Esta ação não pode ser desfeita.</ConfirmText>
+                <ConfirmActions>
+                  <CancelConfirmButton onClick={() => setConfirmDelete(false)}>Cancelar</CancelConfirmButton>
+                  <ConfirmDeleteButton onClick={() => { onDelete(user.id); onClose(); }}>Confirmar</ConfirmDeleteButton>
+                </ConfirmActions>
+              </ConfirmRow>
+            ) : (
+              <DeleteButton onClick={() => setConfirmDelete(true)}>
+                🗑 Remover usuário
+              </DeleteButton>
+            )
           )}
         </Body>
       </Dialog>

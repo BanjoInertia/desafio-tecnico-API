@@ -165,7 +165,7 @@ const Subtitle = styled.p`
 `;
 
 const Actions = styled.div`
-  margin-top: 44px;
+  margin-top: clamp(24px, 6vh, 44px);
   display: flex;
   align-items: center;
   gap: 12px;
