@@ -135,7 +135,7 @@ const HeaderName = styled.h2`
 `;
 
 const HeaderUsername = styled.p`
-  color: ${({ theme }) => theme.colors.heroSubtitle};
+  color: ${({ theme }) => theme.colors.heroTitle};
   font-size: 14px;
   font-weight: 600;
   margin: 5px 0 0;
@@ -157,7 +157,7 @@ const MetaChip = styled.span`
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: ${({ theme }) => theme.colors.heroSubtitle};
+  color: ${({ theme }) => theme.colors.heroTitle};
   border: 1px solid ${({ theme }) => theme.colors.toggleBorder};
   background: ${({ theme }) => theme.colors.toggleBg};
   padding: 3px 8px;
@@ -218,7 +218,7 @@ const DetailContent = styled.div`
 
 const DetailLabel = styled.p`
   font-size: 10px;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.cardTitleColor};
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 700;
@@ -237,11 +237,11 @@ const DetailValue = styled.p<{ $empty?: boolean }>`
   overflow: hidden;
 `;
 
-const CopyHint = styled.span<{ $copied: boolean }>`
+const CopyHint = styled.span`
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 700;
-  color: ${({ $copied, theme }) => ($copied ? theme.colors.heroTitle : theme.colors.textMuted)};
+  color: ${({ theme }) => theme.colors.cardTitleColor};
   letter-spacing: 0.05em;
   transition: color 0.2s;
 `;
@@ -285,7 +285,7 @@ function DetailRow({ label, value, icon, copyable, copied, onCopy }: DetailRowPr
         <DetailValue $empty={empty}>{empty ? 'Não informado' : value}</DetailValue>
       </DetailContent>
       {canCopy && (
-        <CopyHint $copied={!!copied}>{copied ? '✓ COPIADO' : 'COPIAR'}</CopyHint>
+        <CopyHint>{copied ? '✓ COPIADO' : 'COPIAR'}</CopyHint>
       )}
     </DetailItem>
   );
@@ -332,7 +332,7 @@ export function UserModal({ user, onClose, onDelete, canDelete = false }: UserMo
 
   return (
     <Overlay onClick={onClose}>
-      <Dialog ref={dialogRef} onClick={(e) => e.stopPropagation()}>
+      <Dialog ref={dialogRef} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-user-name">
         <ModalHeader>
           <HeaderPattern />
           <HeaderTop>
@@ -349,7 +349,7 @@ export function UserModal({ user, onClose, onDelete, canDelete = false }: UserMo
                 )}
               </AvatarWrapper>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <HeaderName>{user.name}</HeaderName>
+                <HeaderName id="modal-user-name">{user.name}</HeaderName>
                 <HeaderUsername>@{user.username}</HeaderUsername>
               </div>
             </HeaderIdentity>

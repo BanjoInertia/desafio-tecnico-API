@@ -13,15 +13,43 @@ const Icon = styled.svg`
   transform: translateY(-50%);
   width: 17px;
   height: 17px;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.cardTitleColor};
   pointer-events: none;
+`;
+
+const ClearButton = styled.button`
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: none;
+  color: ${({ theme }) => theme.colors.cardTitleColor};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 4px;
+  transition: color 0.15s;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 11px 16px 11px 40px;
+  padding: 11px 36px 11px 40px;
   border-radius: 8px;
-  border: 2.5px solid ${({ theme }) => theme.colors.border};
+  border: 2.5px solid ${({ theme }) => theme.colors.cardTitleColor};
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text};
   font-size: 14px;
@@ -48,8 +76,8 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
-    <Wrapper>
-      <Icon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <Wrapper role="search" aria-label="Buscar usuários">
+      <Icon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
       </Icon>
       <Input
@@ -57,7 +85,16 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         placeholder="Buscar por nome..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        aria-label="Buscar por nome"
       />
+      {value && (
+        <ClearButton onClick={() => onChange('')} aria-label="Limpar busca">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </ClearButton>
+      )}
     </Wrapper>
   );
 }

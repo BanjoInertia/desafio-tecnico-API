@@ -22,18 +22,18 @@ const ToastItem = styled.div<{ $type: 'success' | 'error' }>`
   align-items: center;
   gap: 10px;
   padding: 11px 18px;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 1.5px solid ${({ $type }) => ($type === 'success' ? '#00FF87' : '#FF4466')};
+  background: ${({ $type, theme }) => ($type === 'success' ? theme.colors.toastSuccessBg : theme.colors.toastErrorBg)};
+  border: 1.5px solid ${({ $type }) => ($type === 'success' ? '#00CC70' : '#FF4466')};
   border-radius: 4px;
-  color: ${({ $type }) => ($type === 'success' ? '#00FF87' : '#FF4466')};
+  color: ${({ $type }) => ($type === 'success' ? '#00FF87' : '#FF6680')};
   font-size: 12px;
   font-weight: 700;
   font-family: inherit;
   letter-spacing: 0.04em;
   box-shadow: ${({ $type }) =>
     $type === 'success'
-      ? '0 0 18px rgba(0,255,135,0.22), 4px 4px 0 rgba(0,255,135,0.28)'
-      : '0 0 18px rgba(255,68,102,0.22), 4px 4px 0 rgba(255,68,102,0.28)'};
+      ? '0 0 18px rgba(0,255,135,0.18), 4px 4px 0 rgba(0,204,112,0.35)'
+      : '0 0 18px rgba(255,68,102,0.18), 4px 4px 0 rgba(255,68,102,0.35)'};
   pointer-events: all;
   min-width: 220px;
   animation: ${slideIn} 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;

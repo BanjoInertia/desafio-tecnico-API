@@ -111,12 +111,12 @@ const Row = styled.div`
 const Field = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 `;
 
 const Label = styled.label`
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -204,10 +204,13 @@ const CancelButton = styled.button`
   border-radius: 8px;
   cursor: pointer;
   box-shadow: ${({ theme }) => theme.colors.inputShadow};
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s, background 0.15s, color 0.15s;
 
   &:hover {
-    box-shadow: 5px 5px 0 ${({ theme }) => theme.colors.border};
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border-color: #ef4444;
+    box-shadow: 5px 5px 0 rgba(239, 68, 68, 0.35);
     transform: translate(-1px, -1px);
   }
 `;
@@ -223,10 +226,12 @@ const SubmitButton = styled.button`
   border-radius: 8px;
   cursor: pointer;
   box-shadow: ${({ theme }) => theme.colors.cardShadow};
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s, background 0.15s;
   min-width: 110px;
 
   &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.submitHoverBg};
+    color: ${({ theme }) => theme.colors.submitHoverColor};
     box-shadow: 5px 5px 0 ${({ theme }) => theme.colors.border};
     transform: translate(-1px, -1px);
   }
@@ -247,7 +252,7 @@ const ApiNote = styled.p`
 
 const RequiredNote = styled.p`
   font-size: 11px;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.textNote};
   margin: -4px 0 0;
 
   span {
@@ -287,7 +292,7 @@ function generateRandomData(): Partial<NewUserData> {
 }
 
 const AvatarPickerLabel = styled.p`
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -304,12 +309,12 @@ const AvatarGrid = styled.div`
 const AvatarOption = styled.button<{ $selected: boolean }>`
   aspect-ratio: 1;
   border-radius: 8px;
-  border: 2px solid ${({ $selected, theme }) => ($selected ? theme.colors.heroTitle : theme.colors.border)};
-  background: ${({ $selected, theme }) => ($selected ? theme.colors.toggleBg : theme.colors.surface)};
+  border: 2px solid ${({ $selected, theme }) => ($selected ? theme.colors.primary : theme.colors.border)};
+  background: ${({ $selected, theme }) => ($selected ? theme.colors.primaryLight : theme.colors.surface)};
   padding: 4px;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
-  box-shadow: ${({ $selected, theme }) => ($selected ? `0 0 8px ${theme.colors.heroTitle}` : 'none')};
+  box-shadow: ${({ $selected, theme }) => ($selected ? `0 0 8px ${theme.colors.primary}` : 'none')};
 
   img {
     width: 100%;
@@ -318,7 +323,7 @@ const AvatarOption = styled.button<{ $selected: boolean }>`
   }
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.heroTitle};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 

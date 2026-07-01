@@ -1,4 +1,4 @@
-import { render, screen } from './utils';
+import { render, screen, fireEvent } from './utils';
 import userEvent from '@testing-library/user-event';
 import { UserCard } from '../components/UserCard';
 import type { User } from '../types/user';
@@ -29,7 +29,7 @@ describe('UserCard', () => {
   it('exibe iniciais como fallback se o avatar falhar', async () => {
     render(<UserCard user={mockUser} index={0} onClick={() => {}} />);
     const img = screen.getByRole('img', { name: 'Leanne Graham' });
-    img.dispatchEvent(new Event('error'));
+    fireEvent.error(img);
     expect(await screen.findByText('LG')).toBeInTheDocument();
   });
 

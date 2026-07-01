@@ -37,12 +37,12 @@ export function ParticleCanvas({ colors }: ParticleCanvasProps) {
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = canvasRef.current as HTMLCanvasElement;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     if (!ctx) return;
 
-    const COUNT = 120;
+    const COUNT = 200;
 
     function resize() {
       canvas.width = window.innerWidth;

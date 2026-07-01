@@ -10,6 +10,7 @@ import { SearchBar } from './components/SearchBar';
 import { UserCard } from './components/UserCard';
 import { UserModal } from './components/UserModal';
 import { AddUserModal } from './components/AddUserModal';
+import { SelectDropdown } from './components/SelectDropdown';
 import { LoadingState } from './components/LoadingState';
 import { ErrorState } from './components/ErrorState';
 import { ToastContainer } from './components/Toast';
@@ -32,6 +33,12 @@ const exitFade = keyframes`
   to   { opacity: 0; transform: translateY(16px); }
 `;
 
+const spinIcon = keyframes`
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+`;
+
+
 const PageWrapper = styled.div<{ $visible: boolean }>`
   min-height: 100vh;
   position: relative;
@@ -40,6 +47,7 @@ const PageWrapper = styled.div<{ $visible: boolean }>`
 const cornerSize = '22px';
 const cornerThickness = '2px';
 const cornerGlow = 'rgba(0, 255, 135, 0.5)';
+
 
 const HudCorner = styled.div<{ $pos: 'tl' | 'tr' | 'bl' | 'br' }>`
   position: fixed;
@@ -60,7 +68,6 @@ const HudCorner = styled.div<{ $pos: 'tl' | 'tr' | 'bl' | 'br' }>`
     box-shadow: 0 0 6px ${cornerGlow};
   }
 
-  /* horizontal bar */
   &::before {
     width: ${cornerSize};
     height: ${cornerThickness};
@@ -70,7 +77,6 @@ const HudCorner = styled.div<{ $pos: 'tl' | 'tr' | 'bl' | 'br' }>`
     right: ${({ $pos }) => ($pos === 'tr' || $pos === 'br') ? '0' : 'auto'};
   }
 
-  /* vertical bar */
   &::after {
     width: ${cornerThickness};
     height: ${cornerSize};
@@ -115,7 +121,7 @@ const HeroInner = styled.div`
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 `;
@@ -171,23 +177,29 @@ const HeroTitle = styled.h1`
   line-height: 1;
 `;
 
-const ThemeToggle = styled.button`
-  width: 42px;
-  height: 42px;
+const ThemeIconButton = styled.button<{ $spinning: boolean }>`
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
-  border: 2px solid ${({ theme }) => theme.colors.toggleBorder};
+  border: 2.5px solid ${({ theme }) => theme.colors.toggleBorder};
   background: ${({ theme }) => theme.colors.toggleBg};
-  color: ${({ theme }) => theme.colors.toggleColor};
+  color: ${({ theme }) => theme.colors.heroTitle};
   cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  font-size: 18px;
   transition: background 0.15s;
 
   &:hover {
     background: ${({ theme }) => theme.colors.toggleBorder};
+  }
+
+  svg {
+    width: 22px;
+    height: 22px;
+    animation: ${({ $spinning }) => $spinning ? css`${spinIcon} 0.4s ease-in-out` : 'none'};
   }
 `;
 
@@ -231,45 +243,51 @@ const FilterLabel = styled.span`
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.cardTitleColor};
   flex-shrink: 0;
 `;
 
-const FilterSelect = styled.select`
-  background: ${({ theme }) => theme.colors.pageBg};
-  color: ${({ theme }) => theme.colors.text};
-  border: 1.5px solid ${({ theme }) => theme.colors.border};
-  border-radius: 4px;
-  padding: 7px 10px;
-  font-size: 13px;
-  font-weight: 600;
+const ResetButton = styled.button<{ $active: boolean }>`
+  margin-left: auto;
+  padding: 7px 14px;
+  background: ${({ $active, theme }) => $active ? theme.colors.filterActiveBg : 'transparent'};
+  color: ${({ $active, theme }) => $active ? theme.colors.filterActiveColor : theme.colors.textMuted};
+  font-size: 11px;
+  font-weight: 700;
   font-family: inherit;
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.15s;
+  letter-spacing: 0.06em;
+  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.filterActiveColor : theme.colors.border};
+  border-radius: 6px;
+  cursor: ${({ $active }) => $active ? 'pointer' : 'default'};
+  pointer-events: ${({ $active }) => $active ? 'auto' : 'none'};
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
 
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
+  &:hover {
+    background: ${({ theme }) => theme.colors.filterHoverBg};
+    color: ${({ theme }) => theme.colors.filterHoverColor};
+    border-color: ${({ theme }) => theme.colors.filterHoverBg};
   }
 `;
 
 const AddButton = styled.button`
   white-space: nowrap;
   padding: 8px 14px;
-  background: ${({ theme }) => theme.colors.text};
-  color: ${({ theme }) => theme.colors.surface};
+  background: ${({ theme }) => theme.colors.addButtonBg};
+  color: ${({ theme }) => theme.colors.addButtonColor};
   font-size: 13px;
   font-weight: 900;
   border: 2.5px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
   cursor: pointer;
   box-shadow: ${({ theme }) => theme.colors.cardShadow};
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s, background 0.15s, color 0.15s;
   flex-shrink: 0;
 
   &:hover {
     box-shadow: 5px 5px 0 ${({ theme }) => theme.colors.border};
     transform: translate(-1px, -1px);
+    background: ${({ theme }) => theme.colors.addButtonHoverBg};
+    color: ${({ theme }) => theme.colors.addButtonHoverColor};
   }
 
   &:active {
@@ -332,7 +350,7 @@ const FooterPrompt = styled.p`
 
 const FooterSub = styled.p`
   font-size: 10px;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.heroSubtitle};
   margin: 0;
   letter-spacing: 0.04em;
 `;
@@ -347,8 +365,8 @@ const FooterTag = styled.span`
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: ${({ theme }) => theme.colors.textMuted};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.heroSubtitle};
+  border: 1px solid ${({ theme }) => theme.colors.toggleBorder};
   padding: 3px 8px;
   border-radius: 3px;
 `;
@@ -379,10 +397,35 @@ const EmptySubtitle = styled.p`
 
 function ThemeToggleButton() {
   const { isDark, toggleTheme } = useAppTheme();
+  const [spinning, setSpinning] = useState(false);
+
+  function handleClick() {
+    if (spinning) return;
+    setSpinning(true);
+    setTimeout(() => { toggleTheme(); }, 200);
+    setTimeout(() => setSpinning(false), 420);
+  }
+
   return (
-    <ThemeToggle onClick={toggleTheme} aria-label="Alternar tema">
-      {isDark ? '☀️' : '🌙'}
-    </ThemeToggle>
+    <ThemeIconButton $spinning={spinning} onClick={handleClick} aria-label="Alternar tema">
+      {isDark ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      )}
+    </ThemeIconButton>
   );
 }
 
@@ -401,12 +444,12 @@ export default function App() {
   const theme = useTheme();
 
   const companies = useMemo(
-    () => [...new Set(users.map((u) => u.company.name))].sort(),
+    () => [...new Set(users.map((u) => u.company.name).filter(Boolean))].sort(),
     [users]
   );
 
   const cities = useMemo(
-    () => [...new Set(users.map((u) => u.address.city))].sort(),
+    () => [...new Set(users.map((u) => u.address.city).filter(Boolean))].sort(),
     [users]
   );
 
@@ -421,6 +464,7 @@ export default function App() {
       if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
       if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
       if (sortBy === 'company_asc') return a.company.name.localeCompare(b.company.name);
+      if (debouncedSearch) return a.name.localeCompare(b.name);
       return 0;
     });
   }, [users, debouncedSearch, filterCompany, filterCity, sortBy]);
@@ -444,7 +488,7 @@ export default function App() {
       <HudCorner $pos="tr" />
       <HudCorner $pos="bl" />
       <HudCorner $pos="br" />
-      <ParticleCanvas colors={theme.colors.particleColors} />
+      <ParticleCanvas colors={theme.colors.particleColorsPage} />
 
       {splashMode === 'done' && <Content $leaving={contentLeaving}>
         <Hero>
@@ -476,22 +520,34 @@ export default function App() {
             {!loading && !error && (
               <FilterRow>
                 <FilterLabel>ordenar</FilterLabel>
-                <FilterSelect value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)}>
-                  <option value="default">Padrão</option>
-                  <option value="name_asc">Nome A→Z</option>
-                  <option value="name_desc">Nome Z→A</option>
-                  <option value="company_asc">Empresa A→Z</option>
-                </FilterSelect>
+                <SelectDropdown
+                  value={sortBy}
+                  onChange={(v) => setSortBy(v as SortOption)}
+                  options={[
+                    { label: 'Padrão', value: 'default' },
+                    { label: 'Nome A→Z', value: 'name_asc' },
+                    { label: 'Nome Z→A', value: 'name_desc' },
+                    { label: 'Empresa A→Z', value: 'company_asc' },
+                  ]}
+                />
                 <FilterLabel>empresa</FilterLabel>
-                <FilterSelect value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)}>
-                  <option value="">Todas</option>
-                  {companies.map((c) => <option key={c} value={c}>{c}</option>)}
-                </FilterSelect>
+                <SelectDropdown
+                  value={filterCompany}
+                  onChange={setFilterCompany}
+                  options={[{ label: 'Todas', value: '' }, ...companies.map(c => ({ label: c, value: c }))]}
+                />
                 <FilterLabel>cidade</FilterLabel>
-                <FilterSelect value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
-                  <option value="">Todas</option>
-                  {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-                </FilterSelect>
+                <SelectDropdown
+                  value={filterCity}
+                  onChange={setFilterCity}
+                  options={[{ label: 'Todas', value: '' }, ...cities.map(c => ({ label: c, value: c }))]}
+                />
+                <ResetButton
+                  $active={sortBy !== 'default' || filterCompany !== '' || filterCity !== ''}
+                  onClick={() => { setSortBy('default'); setFilterCompany(''); setFilterCity(''); }}
+                >
+                  ↺ resetar
+                </ResetButton>
               </FilterRow>
             )}
           </SearchCard>

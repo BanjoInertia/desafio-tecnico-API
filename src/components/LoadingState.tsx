@@ -19,20 +19,47 @@ const SkeletonBase = styled.div`
 
 const Card = styled.div`
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 10px;
-  border: 2.5px solid ${({ theme }) => theme.colors.border};
-  padding: 18px 20px;
+  border-radius: 6px;
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
   box-shadow: ${({ theme }) => theme.colors.cardShadow};
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  overflow: hidden;
   transition: background-color 0.3s;
 `;
 
+const TitleBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-bottom: 1.5px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.pageBg};
+`;
+
+const Dot = styled.span<{ $color: string }>`
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  flex-shrink: 0;
+`;
+
+const TitleBarLine = styled(SkeletonBase)`
+  height: 10px;
+  width: 120px;
+  margin-left: 4px;
+`;
+
+const Body = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 15px;
+`;
+
 const AvatarSkeleton = styled(SkeletonBase)`
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
   flex-shrink: 0;
 `;
 
@@ -60,14 +87,22 @@ const Grid = styled.div`
 
 export function LoadingState() {
   return (
-    <Grid>
+    <Grid role="status" aria-label="Carregando usuários">
       {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i}>
-          <AvatarSkeleton />
-          <Lines>
-            <Line $width="55%" />
-            <Line $width="70%" $height="12px" />
-          </Lines>
+        <Card key={i} aria-hidden="true">
+          <TitleBar>
+            <Dot $color="#FF5F57" />
+            <Dot $color="#FFBD2E" />
+            <Dot $color="#28CA41" />
+            <TitleBarLine />
+          </TitleBar>
+          <Body>
+            <AvatarSkeleton />
+            <Lines>
+              <Line $width="55%" />
+              <Line $width="70%" $height="12px" />
+            </Lines>
+          </Body>
         </Card>
       ))}
     </Grid>

@@ -50,7 +50,7 @@ const CardTitleBar = styled.div`
   gap: 6px;
   padding: 9px 16px;
   border-bottom: 1.5px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.pageBg};
+  background: ${({ theme }) => theme.colors.cardTitleBg};
   transition: border-color 0.2s, background 0.2s;
 
   ${Card}:hover & {
@@ -70,7 +70,7 @@ const Dot = styled.span<{ $color: string }>`
 const TitleBarPath = styled.span`
   font-size: 11px;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.cardTitleColor};
   letter-spacing: 0.04em;
   margin-left: 4px;
   flex: 1;
@@ -131,7 +131,7 @@ const Info = styled.div`
 
 const Name = styled.p`
   font-weight: 700;
-  font-size: 16px;
+  font-size: 17px;
   color: ${({ theme }) => theme.colors.text};
   white-space: nowrap;
   overflow: hidden;
@@ -142,7 +142,7 @@ const Name = styled.p`
 const Email = styled.p`
   font-size: 13px;
   font-weight: 500;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.cardTitleColor};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -183,7 +183,7 @@ export function UserCard({ user, index, isLocal = false, onClick }: UserCardProp
   const slug = user.username.toLowerCase();
 
   return (
-    <Card $index={index} onClick={() => onClick(user)}>
+    <Card $index={index} onClick={() => onClick(user)} aria-label={`Ver detalhes de ${user.name}`}>
       <CardTitleBar>
         <Dot $color="#FF5F57" />
         <Dot $color="#FFBD2E" />

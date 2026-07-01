@@ -35,9 +35,10 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('useUsers', () => {
-  it('inicia em estado de loading', () => {
+  it('inicia em estado de loading', async () => {
     const { result } = renderHook(() => useUsers());
     expect(result.current.loading).toBe(true);
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it('carrega usuários da API', async () => {
@@ -83,10 +84,11 @@ describe('useUsers', () => {
     expect(stored[0].id).toBe(mockLocalUser.id);
   });
 
-  it('carrega usuários locais do localStorage ao inicializar', () => {
+  it('carrega usuários locais do localStorage ao inicializar', async () => {
     localStorage.setItem('local_users', JSON.stringify([mockLocalUser]));
     const { result } = renderHook(() => useUsers());
     expect(result.current.isLocalUser(mockLocalUser.id)).toBe(true);
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it('define erro quando a API falha', async () => {

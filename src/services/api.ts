@@ -38,6 +38,5 @@ export async function createUser(data: NewUserData): Promise<User> {
   });
   if (!response.ok) throw new Error('Falha ao criar usuário');
   const created = await response.json();
-  // JSONPlaceholder always returns id 11 — use a unique local id instead
   return { ...created, id: Date.now(), avatarSeed: data.avatarSeed };
 }
